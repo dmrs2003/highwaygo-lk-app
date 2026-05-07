@@ -51,64 +51,86 @@ export default function Register() {
 
       <Text style={styles.subtitle}>Create Account</Text>
 
-    
+      {/* FULL NAME */}
+      <Text style={styles.label}>Full Name</Text>
       <TextInput
         style={styles.input}
-        placeholder="Full Name"
+        placeholder="Enter Full Name"
+        placeholderTextColor="#666"
         value={name}
         onChangeText={setName}
       />
 
+      {/* PHONE */}
+      <Text style={styles.label}>Phone Number</Text>
       <TextInput
         style={styles.input}
-        placeholder="Phone Number"
+        placeholder="Enter Phone Number"
+        placeholderTextColor="#666"
         keyboardType="phone-pad"
         value={phone}
         onChangeText={setPhone}
       />
 
+      {/* EMAIL */}
+      <Text style={styles.label}>Email</Text>
       <TextInput
         style={styles.input}
-        placeholder="Email"
+        placeholder="Enter Email"
+        placeholderTextColor="#666"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
 
+      {/* NIC */}
+      <Text style={styles.label}>NIC Number</Text>
       <TextInput
         style={styles.input}
-        placeholder="NIC Number"
+        placeholder="Enter NIC Number"
+        placeholderTextColor="#666"
         value={nic}
         onChangeText={setNic}
       />
 
+      {/* ADDRESS */}
+      <Text style={styles.label}>Address</Text>
       <TextInput
         style={styles.input}
-        placeholder="Address"
+        placeholder="Enter Address"
+        placeholderTextColor="#666"
         value={address}
         onChangeText={setAddress}
       />
 
+      {/* PASSWORD */}
+      <Text style={styles.label}>Password</Text>
       <TextInput
         style={styles.input}
-        placeholder="Password"
+        placeholder="Enter Password"
+        placeholderTextColor="#666"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
 
+      {/* CONFIRM PASSWORD */}
+      <Text style={styles.label}>Confirm Password</Text>
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
+        placeholderTextColor="#666"
         secureTextEntry
         value={confirmPassword}
         onChangeText={setConfirmPassword}
       />
 
+      {/* REGISTER BUTTON */}
       <TouchableOpacity style={styles.button} onPress={handleRegister}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
+      {/* LOGIN */}
       <TouchableOpacity onPress={() => router.push("/login")}>
         <Text style={styles.loginText}>
           Already have an account? Login
@@ -142,6 +164,14 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
 
+  label: {
+    color: "#fff",
+    marginBottom: 8,
+    marginLeft: 5,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
   input: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -165,7 +195,7 @@ const styles = StyleSheet.create({
   },
 
   loginText: {
-    color: "#000000",
+    color: "#fff",
     textAlign: "center",
     marginTop: 25,
     fontSize: 15,

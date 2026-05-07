@@ -11,10 +11,12 @@ import {
 import { router } from "expo-router";
 
 export default function Login() {
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = () => {
+
     if (!email || !password) {
       Alert.alert("Error", "Please fill all fields");
       return;
@@ -26,23 +28,27 @@ export default function Login() {
   return (
     <View style={styles.container}>
 
-      {/* LOGO / TITLE */}
       <Text style={styles.logo}>HighwayGo LK 🚍</Text>
+
       <Text style={styles.subtitle}>Welcome Back</Text>
 
       {/* EMAIL */}
+      <Text style={styles.label}>Email</Text>
       <TextInput
         style={styles.input}
         placeholder="Enter Email"
+        placeholderTextColor="#666"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
 
       {/* PASSWORD */}
+      <Text style={styles.label}>Password</Text>
       <TextInput
         style={styles.input}
         placeholder="Enter Password"
+        placeholderTextColor="#666"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -87,6 +93,14 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
 
+  label: {
+    color: "#fff",
+    marginBottom: 8,
+    marginLeft: 5,
+    fontSize: 15,
+    fontWeight: "600",
+  },
+
   input: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -110,7 +124,7 @@ const styles = StyleSheet.create({
   },
 
   registerText: {
-    color: "#000000",
+    color: "#fff",
     textAlign: "center",
     marginTop: 25,
     fontSize: 15,
