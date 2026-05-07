@@ -6,6 +6,13 @@ export default function Home() {
 
       <Text style={styles.title}>Welcome to HighwayGo LK 🚍</Text>
 
+      <img src="C:\Users\user\OneDrive\Desktop\highwaygo-lk-app\highwaygo-lk-app\mobile\assets\images\ChatGPT Image May 6, 2026, 08_39_26 AM.png" alt="HighwayGo LK" />
+
+      <Text style={styles.subtitle}>
+          Your one-stop solution for booking highway buses across Sri Lanka
+          {"\n\n"}
+      </Text>
+
       <Text style={styles.subtitle}>
         Book highway buses easily across Sri Lanka
       </Text>
