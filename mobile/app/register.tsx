@@ -10,6 +10,7 @@ import {
 } from "react-native";
 
 import { router } from "expo-router";
+import API from "../services/api";
 
 export default function Register() {
 
@@ -21,8 +22,11 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handleRegister = () => {
+  // ================= REGISTER FUNCTION =================
 
+  const handleRegister = async () => {
+
+    // validation
     if (
       !name ||
       !phone ||
@@ -36,17 +40,47 @@ export default function Register() {
       return;
     }
 
+    // password check
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
 
-    Alert.alert("Success", "Register button working");
+    try {
+
+      // API request
+      const response = await API.post("/auth/register", {
+        name,
+        phone,
+        email,
+        nic,
+        address,
+        password,
+        confirmPassword,
+      });
+
+      // success message
+      Alert.alert(
+        "Success",
+        response.data.message || "Registration successful"
+      );
+
+      // go to login
+      router.push("/login");
+
+    } catch (error: any) {
+
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Registration failed"
+      );
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
 
+      {/* LOGO */}
       <Text style={styles.logo}>HighwayGo LK 🚍</Text>
 
       <Text style={styles.subtitle}>Create Account</Text>

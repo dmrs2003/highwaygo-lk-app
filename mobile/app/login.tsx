@@ -9,25 +9,50 @@ import {
 } from "react-native";
 
 import { router } from "expo-router";
+import API from "../services/api";
 
 export default function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
+  // ================= LOGIN FUNCTION =================
+
+  const handleLogin = async () => {
 
     if (!email || !password) {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
 
-    Alert.alert("Success", "Login button working");
+    try {
+
+      const response = await API.post("/auth/login", {
+        email,
+        password,
+      });
+
+      Alert.alert(
+        "Success",
+        response.data.message || "Login successful"
+      );
+
+      // Navigate to home
+      router.push("/home");
+
+    } catch (error: any) {
+
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Login failed"
+      );
+    }
   };
 
   return (
     <View style={styles.container}>
 
+      {/* LOGO */}
       <Text style={styles.logo}>HighwayGo LK 🚍</Text>
 
       <Text style={styles.subtitle}>Welcome Back</Text>
