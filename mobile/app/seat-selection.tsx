@@ -11,7 +11,7 @@ import {
 import { useLocalSearchParams, router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
-import { darkTheme, lightTheme } from "../constants/Colors";
+import { darkTheme, lightTheme } from "../constants/colors";
 
 export default function SeatSelection() {
   const { busId } = useLocalSearchParams<{ busId: string }>();

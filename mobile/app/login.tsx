@@ -6,42 +6,38 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  useColorScheme,
+  ScrollView,
 } from "react-native";
-
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
+import { darkTheme, lightTheme } from "../constants/colors";
 
 export default function Login() {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  // ================= LOGIN FUNCTION =================
-
   const handleLogin = async () => {
-
     if (!email || !password) {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
 
     try {
-
       const response = await API.post("/auth/login", {
         email,
         password,
       });
 
-      Alert.alert(
-        "Success",
-        response.data.message || "Login successful"
-      );
+      await AsyncStorage.setItem("token", response.data.token);
 
-      // Navigate to home
+      Alert.alert("Success", "Login successful");
       router.push("/home");
-
     } catch (error: any) {
-
       Alert.alert(
         "Error",
         error.response?.data?.message || "Login failed"
@@ -50,108 +46,131 @@ export default function Login() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentContainerStyle={[
+        styles.container,
+        { backgroundColor: theme.bg },
+      ]}
+    >
+      <Text style={[styles.logo, { color: theme.primary }]}>
+        HighwayGo LK
+      </Text>
 
-      {/* LOGO */}
-      <Text style={styles.logo}>HighwayGo LK 🚍</Text>
+      <Text style={[styles.title, { color: theme.text }]}>
+        Welcome Back 👋
+      </Text>
 
-      <Text style={styles.subtitle}>Welcome Back</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>
+        Login to continue your highway journey
+      </Text>
 
-      {/* EMAIL */}
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Email"
-        placeholderTextColor="#666"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
+      <View style={[styles.card, { backgroundColor: theme.card }]}>
+        <Text style={[styles.label, { color: theme.text }]}>Email</Text>
+        <TextInput
+          style={[
+            styles.input,
+            { color: theme.text, borderColor: theme.muted },
+          ]}
+          placeholder="Enter your email"
+          placeholderTextColor={theme.muted}
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
 
-      {/* PASSWORD */}
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Password"
-        placeholderTextColor="#666"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+        <Text style={[styles.label, { color: theme.text }]}>Password</Text>
+        <TextInput
+          style={[
+            styles.input,
+            { color: theme.text, borderColor: theme.muted },
+          ]}
+          placeholder="Enter your password"
+          placeholderTextColor={theme.muted}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      {/* LOGIN BUTTON */}
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: theme.primary }]}
+          onPress={handleLogin}
+        >
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
 
-      {/* REGISTER */}
-      <TouchableOpacity onPress={() => router.push("/register")}>
-        <Text style={styles.registerText}>
-          Don’t have an account? Register
-        </Text>
-      </TouchableOpacity>
-
-    </View>
+        <TouchableOpacity onPress={() => router.push("/register")}>
+          <Text style={[styles.linkText, { color: theme.primary }]}>
+            Don’t have an account? Register
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#0B1E3D",
-    justifyContent: "center",
-    paddingHorizontal: 25,
+    flexGrow: 1,
+    padding: 24,
+    paddingTop: 90,
   },
 
   logo: {
     fontSize: 32,
     fontWeight: "bold",
-    color: "#FFD447",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 25,
+  },
+
+  title: {
+    fontSize: 30,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 
   subtitle: {
-    fontSize: 18,
-    color: "#fff",
+    fontSize: 15,
     textAlign: "center",
-    marginBottom: 40,
+    marginTop: 8,
+    marginBottom: 35,
+  },
+
+  card: {
+    borderRadius: 24,
+    padding: 22,
   },
 
   label: {
-    color: "#fff",
-    marginBottom: 8,
-    marginLeft: 5,
     fontSize: 15,
     fontWeight: "600",
+    marginBottom: 8,
   },
 
   input: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 15,
-    marginBottom: 20,
+    marginBottom: 18,
     fontSize: 16,
   },
 
   button: {
-    backgroundColor: "#FFD447",
-    padding: 15,
-    borderRadius: 12,
+    padding: 16,
+    borderRadius: 18,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 8,
   },
 
   buttonText: {
-    color: "#0B1E3D",
+    color: "#071A2F",
     fontSize: 18,
     fontWeight: "bold",
   },
 
-  registerText: {
-    color: "#fff",
+  linkText: {
     textAlign: "center",
-    marginTop: 25,
+    marginTop: 24,
     fontSize: 15,
+    fontWeight: "600",
   },
 });

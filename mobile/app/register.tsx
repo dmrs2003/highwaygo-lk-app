@@ -1,18 +1,21 @@
 import { useState } from "react";
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
   Alert,
+  useColorScheme,
+  View,
 } from "react-native";
-
 import { router } from "expo-router";
 import API from "../services/api";
+import { darkTheme, lightTheme } from "../constants/colors";
 
 export default function Register() {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -22,34 +25,19 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // ================= REGISTER FUNCTION =================
-
   const handleRegister = async () => {
-
-    // validation
-    if (
-      !name ||
-      !phone ||
-      !email ||
-      !nic ||
-      !address ||
-      !password ||
-      !confirmPassword
-    ) {
+    if (!name || !phone || !email || !nic || !address || !password || !confirmPassword) {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
 
-    // password check
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
 
     try {
-
-      // API request
-      const response = await API.post("/auth/register", {
+      const res = await API.post("/auth/register", {
         name,
         phone,
         email,
@@ -59,118 +47,88 @@ export default function Register() {
         confirmPassword,
       });
 
-      // success message
-      Alert.alert(
-        "Success",
-        response.data.message || "Registration successful"
-      );
-
-      // go to login
+      Alert.alert("Success", res.data.message || "Registration successful");
       router.push("/login");
-
     } catch (error: any) {
-
       Alert.alert(
         "Error",
-        error.response?.data?.message || "Registration failed"
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Registration failed"
       );
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={[styles.container, { backgroundColor: theme.bg }]}
+      showsVerticalScrollIndicator={false}
+    >
+      <Text style={[styles.logo, { color: theme.primary }]}>HighwayGo LK</Text>
 
-      {/* LOGO */}
-      <Text style={styles.logo}>HighwayGo LK 🚍</Text>
+      <Text style={[styles.title, { color: theme.text }]}>
+        Create Account 🚍
+      </Text>
 
-      <Text style={styles.subtitle}>Create Account</Text>
+      <Text style={[styles.subtitle, { color: theme.muted }]}>
+        Register and start booking highway buses
+      </Text>
 
-      {/* FULL NAME */}
-      <Text style={styles.label}>Full Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Full Name"
-        placeholderTextColor="#666"
-        value={name}
-        onChangeText={setName}
-      />
+      <View style={[styles.card, { backgroundColor: theme.card }]}>
+        {[
+          ["Full Name", name, setName, "default", false],
+          ["Phone Number", phone, setPhone, "phone-pad", false],
+          ["Email", email, setEmail, "email-address", false],
+          ["NIC Number", nic, setNic, "default", false],
+          ["Address", address, setAddress, "default", false],
+        ].map(([label, value, setter, keyboardType, secure]: any) => (
+          <View key={label}>
+            <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
+            <TextInput
+              style={[styles.input, { color: theme.text, borderColor: theme.muted }]}
+              placeholder={`Enter ${label}`}
+              placeholderTextColor={theme.muted}
+              value={value}
+              onChangeText={setter}
+              keyboardType={keyboardType}
+              secureTextEntry={secure}
+            />
+          </View>
+        ))}
 
-      {/* PHONE */}
-      <Text style={styles.label}>Phone Number</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Phone Number"
-        placeholderTextColor="#666"
-        keyboardType="phone-pad"
-        value={phone}
-        onChangeText={setPhone}
-      />
+        <Text style={[styles.label, { color: theme.text }]}>Password</Text>
+        <TextInput
+          style={[styles.input, { color: theme.text, borderColor: theme.muted }]}
+          placeholder="Enter Password"
+          placeholderTextColor={theme.muted}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
 
-      {/* EMAIL */}
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Email"
-        placeholderTextColor="#666"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
+        <Text style={[styles.label, { color: theme.text }]}>Confirm Password</Text>
+        <TextInput
+          style={[styles.input, { color: theme.text, borderColor: theme.muted }]}
+          placeholder="Confirm Password"
+          placeholderTextColor={theme.muted}
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
+        />
 
-      {/* NIC */}
-      <Text style={styles.label}>NIC Number</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter NIC Number"
-        placeholderTextColor="#666"
-        value={nic}
-        onChangeText={setNic}
-      />
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: theme.primary }]}
+          onPress={handleRegister}
+        >
+          <Text style={styles.buttonText}>Register</Text>
+        </TouchableOpacity>
 
-      {/* ADDRESS */}
-      <Text style={styles.label}>Address</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Address"
-        placeholderTextColor="#666"
-        value={address}
-        onChangeText={setAddress}
-      />
-
-      {/* PASSWORD */}
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter Password"
-        placeholderTextColor="#666"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      {/* CONFIRM PASSWORD */}
-      <Text style={styles.label}>Confirm Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        placeholderTextColor="#666"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
-
-      {/* REGISTER BUTTON */}
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Register</Text>
-      </TouchableOpacity>
-
-      {/* LOGIN */}
-      <TouchableOpacity onPress={() => router.push("/login")}>
-        <Text style={styles.loginText}>
-          Already have an account? Login
-        </Text>
-      </TouchableOpacity>
-
+        <TouchableOpacity onPress={() => router.push("/login")}>
+          <Text style={[styles.linkText, { color: theme.primary }]}>
+            Already have an account? Login
+          </Text>
+        </TouchableOpacity>
+      </View>
     </ScrollView>
   );
 }
@@ -178,60 +136,66 @@ export default function Register() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#0B1E3D",
-    justifyContent: "center",
-    padding: 25,
+    padding: 24,
+    paddingTop: 60,
   },
 
   logo: {
     fontSize: 30,
     fontWeight: "bold",
-    color: "#FFD447",
     textAlign: "center",
-    marginBottom: 10,
+    marginBottom: 18,
+  },
+
+  title: {
+    fontSize: 30,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 
   subtitle: {
-    fontSize: 18,
-    color: "#fff",
+    fontSize: 15,
     textAlign: "center",
-    marginBottom: 30,
+    marginTop: 8,
+    marginBottom: 28,
+  },
+
+  card: {
+    borderRadius: 24,
+    padding: 22,
   },
 
   label: {
-    color: "#fff",
-    marginBottom: 8,
-    marginLeft: 5,
     fontSize: 15,
     fontWeight: "600",
+    marginBottom: 8,
   },
 
   input: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
+    borderWidth: 1,
+    borderRadius: 16,
     padding: 15,
-    marginBottom: 18,
+    marginBottom: 16,
     fontSize: 16,
   },
 
   button: {
-    backgroundColor: "#FFD447",
-    padding: 15,
-    borderRadius: 12,
+    padding: 16,
+    borderRadius: 18,
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 8,
   },
 
   buttonText: {
-    color: "#0B1E3D",
+    color: "#071A2F",
     fontSize: 18,
     fontWeight: "bold",
   },
 
-  loginText: {
-    color: "#fff",
+  linkText: {
     textAlign: "center",
-    marginTop: 25,
+    marginTop: 24,
     fontSize: 15,
+    fontWeight: "600",
   },
 });

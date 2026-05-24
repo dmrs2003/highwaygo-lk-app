@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  useColorScheme,
 } from "react-native";
 import { router } from "expo-router";
 import API from "../services/api";
+import { darkTheme, lightTheme } from "../constants/colors";
 
 type Bus = {
   _id: string;
@@ -25,6 +27,9 @@ type Bus = {
 };
 
 export default function Buses() {
+  const colorScheme = useColorScheme();
+  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
+
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,48 +52,199 @@ export default function Buses() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Available Buses 🚍</Text>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: theme.bg },
+      ]}
+    >
+      <Text style={[styles.title, { color: theme.text }]}>
+        Available Buses 🚍
+      </Text>
 
       {loading ? (
-        <Text style={styles.loading}>Loading buses...</Text>
+        <Text style={[styles.loading, { color: theme.text }]}>
+          Loading buses...
+        </Text>
       ) : (
         <FlatList
           data={buses}
           keyExtractor={(item) => item._id}
           showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 120 }}
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <View
+              style={[
+                styles.card,
+                { backgroundColor: theme.card },
+              ]}
+            >
               <Image
                 source={{ uri: item.imageUrl }}
                 style={styles.busImage}
                 resizeMode="cover"
               />
 
-              <Text style={styles.busName}>{item.busName}</Text>
-              <Text style={styles.busNumber}>{item.busNumber}</Text>
+              <View style={styles.topRow}>
+                <View>
+                  <Text
+                    style={[
+                      styles.busName,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {item.busName}
+                  </Text>
 
-              <Text style={styles.route}>
-                {item.routeFrom} → {item.routeTo}
-              </Text>
+                  <Text
+                    style={[
+                      styles.busNumber,
+                      { color: theme.muted },
+                    ]}
+                  >
+                    {item.busNumber}
+                  </Text>
+                </View>
 
-              <Text style={styles.info}>Departure: {item.departureTime}</Text>
+                <View
+                  style={[
+                    styles.priceBadge,
+                    { backgroundColor: theme.primary },
+                  ]}
+                >
+                  <Text style={styles.priceText}>
+                    LKR {item.price}
+                  </Text>
+                </View>
+              </View>
 
-              <Text style={styles.info}>
-                Arrival: {item.arrivalTime || "N/A"}
-              </Text>
+              <View style={styles.routeContainer}>
+                <View>
+                  <Text
+                    style={[
+                      styles.routeLabel,
+                      { color: theme.muted },
+                    ]}
+                  >
+                    From
+                  </Text>
 
-              <Text style={styles.price}>LKR {item.price}</Text>
+                  <Text
+                    style={[
+                      styles.routeText,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {item.routeFrom}
+                  </Text>
+                </View>
 
-              <Text style={styles.info}>Seats: {item.totalSeats}</Text>
+                <Text
+                  style={[
+                    styles.arrow,
+                    { color: theme.primary },
+                  ]}
+                >
+                  →
+                </Text>
+
+                <View>
+                  <Text
+                    style={[
+                      styles.routeLabel,
+                      { color: theme.muted },
+                    ]}
+                  >
+                    To
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.routeText,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {item.routeTo}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.infoRow}>
+                <View>
+                  <Text
+                    style={[
+                      styles.infoLabel,
+                      { color: theme.muted },
+                    ]}
+                  >
+                    Departure
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.infoValue,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {item.departureTime}
+                  </Text>
+                </View>
+
+                <View>
+                  <Text
+                    style={[
+                      styles.infoLabel,
+                      { color: theme.muted },
+                    ]}
+                  >
+                    Arrival
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.infoValue,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {item.arrivalTime || "N/A"}
+                  </Text>
+                </View>
+
+                <View>
+                  <Text
+                    style={[
+                      styles.infoLabel,
+                      { color: theme.muted },
+                    ]}
+                  >
+                    Seats
+                  </Text>
+
+                  <Text
+                    style={[
+                      styles.infoValue,
+                      { color: theme.text },
+                    ]}
+                  >
+                    {item.totalSeats}
+                  </Text>
+                </View>
+              </View>
 
               <TouchableOpacity
-                style={styles.button}
+                style={[
+                  styles.button,
+                  { backgroundColor: theme.primary },
+                ]}
                 onPress={() =>
-                  router.push(`/seat-selection?busId=${item._id}`)
+                  router.push(
+                    `/seat-selection?busId=${item._id}`
+                  )
                 }
               >
-                <Text style={styles.buttonText}>Book Now</Text>
+                <Text style={styles.buttonText}>
+                  Select Seats 🎫
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -96,10 +252,20 @@ export default function Buses() {
       )}
 
       <TouchableOpacity
-        style={styles.backButton}
+        style={[
+          styles.backButton,
+          { borderColor: theme.primary },
+        ]}
         onPress={() => router.push("/home")}
       >
-        <Text style={styles.backText}>Back Home</Text>
+        <Text
+          style={[
+            styles.backText,
+            { color: theme.primary },
+          ]}
+        >
+          Back Home
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -108,96 +274,130 @@ export default function Buses() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0B1E3D",
-    padding: 20,
     paddingTop: 60,
+    paddingHorizontal: 18,
   },
 
   title: {
-    color: "#FFD447",
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: "bold",
     marginBottom: 20,
-    textAlign: "center",
   },
 
   loading: {
-    color: "#fff",
     textAlign: "center",
-    marginTop: 30,
+    marginTop: 50,
+    fontSize: 16,
   },
 
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 18,
-    marginBottom: 15,
+    borderRadius: 24,
+    marginBottom: 20,
+    overflow: "hidden",
   },
 
   busImage: {
     width: "100%",
-    height: 160,
-    borderRadius: 12,
-    marginBottom: 12,
-    backgroundColor: "#ddd",
+    height: 200,
+  },
+
+  topRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingTop: 18,
   },
 
   busName: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    color: "#0B1E3D",
   },
 
   busNumber: {
-    color: "#555",
-    marginBottom: 10,
+    marginTop: 4,
+    fontSize: 14,
   },
 
-  route: {
-    fontSize: 18,
+  priceBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 14,
+    justifyContent: "center",
+  },
+
+  priceText: {
+    color: "#071A2F",
     fontWeight: "bold",
-    color: "#0B1E3D",
-    marginBottom: 10,
+    fontSize: 15,
   },
 
-  info: {
-    fontSize: 15,
-    color: "#333",
+  routeContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 18,
+    marginTop: 22,
+  },
+
+  routeLabel: {
+    fontSize: 13,
     marginBottom: 5,
   },
 
-  price: {
-    fontSize: 18,
-    color: "#0B1E3D",
+  routeText: {
+    fontSize: 20,
     fontWeight: "bold",
-    marginVertical: 8,
+  },
+
+  arrow: {
+    fontSize: 34,
+    fontWeight: "bold",
+  },
+
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 25,
+    paddingHorizontal: 18,
+  },
+
+  infoLabel: {
+    fontSize: 12,
+    marginBottom: 5,
+  },
+
+  infoValue: {
+    fontSize: 16,
+    fontWeight: "bold",
   },
 
   button: {
-    backgroundColor: "#FFD447",
-    padding: 12,
-    borderRadius: 10,
+    margin: 18,
+    padding: 16,
+    borderRadius: 18,
     alignItems: "center",
-    marginTop: 10,
   },
 
   buttonText: {
-    color: "#0B1E3D",
+    color: "#071A2F",
+    fontSize: 17,
     fontWeight: "bold",
-    fontSize: 16,
   },
 
   backButton: {
-    borderWidth: 1,
-    borderColor: "#FFD447",
-    padding: 12,
-    borderRadius: 10,
+    position: "absolute",
+    bottom: 20,
+    left: 18,
+    right: 18,
+    borderWidth: 2,
+    padding: 15,
+    borderRadius: 18,
     alignItems: "center",
-    marginTop: 10,
+    backgroundColor: "transparent",
   },
 
   backText: {
-    color: "#FFD447",
+    fontSize: 16,
     fontWeight: "bold",
   },
 });
