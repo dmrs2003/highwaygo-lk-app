@@ -6,17 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  useColorScheme,
   View,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
 import API from "../services/api";
-import { Colors } from "../constants/colors";
 
 export default function OwnerRegister() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? Colors.dark : Colors.light;
-
   const [ownerName, setOwnerName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -78,46 +74,38 @@ export default function OwnerRegister() {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        { backgroundColor: theme.background },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={[styles.logo, { color: theme.tint }]}>HighwayGo LK</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Image
+        source={require("../assets/images/auth-bus.png")}
+        style={styles.heroImage}
+        resizeMode="cover"
+      />
 
-      <Text style={[styles.title, { color: theme.text }]}>
-        Owner Register 🚌
+      <Text style={styles.logo}>HighwayGo LK</Text>
+
+      <Text style={styles.title}>Owner Registration 🚌</Text>
+
+      <Text style={styles.subtitle}>
+        Register your bus business and wait for admin approval.
       </Text>
 
-      <Text style={[styles.subtitle, { color: theme.icon }]}>
-        Register as a bus owner and wait for admin approval
-      </Text>
+      <View style={styles.card}>
+        <Input label="Owner Name" value={ownerName} setValue={setOwnerName} />
+        <Input label="Phone Number" value={phone} setValue={setPhone} keyboardType="phone-pad" />
+        <Input label="Email" value={email} setValue={setEmail} keyboardType="email-address" />
+        <Input label="NIC Number" value={nic} setValue={setNic} />
+        <Input label="Business Name" value={businessName} setValue={setBusinessName} />
+        <Input label="Business Reg No" value={businessRegNo} setValue={setBusinessRegNo} />
+        <Input label="Address" value={address} setValue={setAddress} />
+        <Input label="Password" value={password} setValue={setPassword} secureTextEntry />
+        <Input label="Confirm Password" value={confirmPassword} setValue={setConfirmPassword} secureTextEntry />
 
-      <View style={[styles.card, { backgroundColor: theme.background }]}>
-        <Input label="Owner Name" value={ownerName} setValue={setOwnerName} theme={theme} />
-        <Input label="Phone Number" value={phone} setValue={setPhone} theme={theme} keyboardType="phone-pad" />
-        <Input label="Email" value={email} setValue={setEmail} theme={theme} keyboardType="email-address" />
-        <Input label="NIC Number" value={nic} setValue={setNic} theme={theme} />
-        <Input label="Business Name" value={businessName} setValue={setBusinessName} theme={theme} />
-        <Input label="Business Reg No" value={businessRegNo} setValue={setBusinessRegNo} theme={theme} />
-        <Input label="Address" value={address} setValue={setAddress} theme={theme} />
-
-        <Input label="Password" value={password} setValue={setPassword} theme={theme} secureTextEntry />
-        <Input label="Confirm Password" value={confirmPassword} setValue={setConfirmPassword} theme={theme} secureTextEntry />
-
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: theme.tint }]}
-          onPress={handleOwnerRegister}
-        >
-          <Text style={styles.buttonText}>Register Owner</Text>
+        <TouchableOpacity style={styles.ownerButton} onPress={handleOwnerRegister}>
+          <Text style={styles.ownerButtonText}>Register Owner ›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.push("/owner-login")}>
-          <Text style={[styles.linkText, { color: theme.tint }]}>
-            Already have an owner account? Login
-          </Text>
+          <Text style={styles.loginLink}>Already have an owner account? Login</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -128,28 +116,21 @@ function Input({
   label,
   value,
   setValue,
-  theme,
   keyboardType = "default",
   secureTextEntry = false,
 }: any) {
   return (
     <View>
-      <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
-
+      <Text style={styles.label}>{label}</Text>
       <TextInput
-        style={[
-          styles.input,
-          {
-            color: theme.text,
-            borderColor: theme.icon,
-          },
-        ]}
+        style={styles.input}
         placeholder={`Enter ${label}`}
-        placeholderTextColor={theme.icon}
+        placeholderTextColor="#8A98AA"
         value={value}
         onChangeText={setValue}
         keyboardType={keyboardType}
         secureTextEntry={secureTextEntry}
+        autoCapitalize="none"
       />
     </View>
   );
@@ -158,66 +139,81 @@ function Input({
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 24,
-    paddingTop: 60,
+    backgroundColor: "#F4F8FF",
+    alignItems: "center",
+    paddingBottom: 30,
   },
-
+  heroImage: {
+    width: "100%",
+    height: 210,
+    borderBottomLeftRadius: 38,
+    borderBottomRightRadius: 38,
+    marginBottom: 20,
+  },
   logo: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 18,
-  },
-
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-
-  subtitle: {
-    fontSize: 15,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 28,
-  },
-
-  card: {
-    borderRadius: 24,
-    padding: 22,
-  },
-
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 36,
+    fontWeight: "900",
+    color: "#071A2F",
     marginBottom: 8,
   },
-
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#071A2F",
+    textAlign: "center",
+  },
+  subtitle: {
+    color: "#4B5B73",
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 24,
+    paddingHorizontal: 30,
+    marginTop: 8,
+    marginBottom: 22,
+  },
+  card: {
+    width: "90%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+  label: {
+    color: "#071A2F",
+    fontSize: 15,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
   input: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 15,
+    borderWidth: 1.5,
+    borderColor: "#D8E2F0",
+    borderRadius: 18,
+    padding: 16,
     marginBottom: 16,
     fontSize: 16,
+    color: "#071A2F",
+    backgroundColor: "#F8FBFF",
   },
-
-  button: {
+  ownerButton: {
+    backgroundColor: "#071A2F",
     padding: 16,
     borderRadius: 18,
     alignItems: "center",
     marginTop: 8,
   },
-
-  buttonText: {
-    color: "#071A2F",
-    fontSize: 18,
-    fontWeight: "bold",
+  ownerButtonText: {
+    color: "#FFD447",
+    fontSize: 17,
+    fontWeight: "900",
   },
-
-  linkText: {
+  loginLink: {
+    color: "#F5A400",
     textAlign: "center",
-    marginTop: 24,
+    marginTop: 22,
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "900",
   },
 });

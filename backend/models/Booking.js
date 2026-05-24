@@ -15,12 +15,17 @@ const bookingSchema = new mongoose.Schema(
     },
 
     seatNumbers: {
-    type: [Number],
-    required: true,
+      type: [Number],
+      required: true,
     },
 
     travelDate: {
       type: String,
+      required: true,
+    },
+
+    totalAmount: {
+      type: Number,
       required: true,
     },
 
@@ -32,7 +37,7 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// same bus + same date + same seat duplicate block
+// prevent duplicate seat booking for same bus + same date
 bookingSchema.index(
   { busId: 1, travelDate: 1, seatNumbers: 1 },
   { unique: true }

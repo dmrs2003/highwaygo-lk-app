@@ -1,12 +1,12 @@
 import { router } from "expo-router";
 import {
-  View,
   Text,
   StyleSheet,
   TouchableOpacity,
   Image,
   useColorScheme,
   ScrollView,
+  View,
 } from "react-native";
 import { Colors } from "../constants/colors";
 
@@ -18,86 +18,103 @@ export default function Index() {
     <ScrollView
       contentContainerStyle={[
         styles.container,
-        { backgroundColor: theme.background },
+        { backgroundColor: "#F4F8FF" },
       ]}
       showsVerticalScrollIndicator={false}
     >
       <Image
-        source={require("../assets/images/ChatGPT Image May 6, 2026, 08_39_26 AM.png")}
-        style={styles.logo}
-        resizeMode="contain"
+        source={require("../assets/images/index-bus.png")}
+        style={styles.heroImage}
+        resizeMode="cover"
       />
 
-      <Text style={[styles.title, { color: theme.text }]}>
-        HighwayGo LK
-      </Text>
+      <Text style={styles.title}>HighwayGo LK</Text>
 
-      <Text style={[styles.subtitle, { color: theme.icon }]}>
-        Smart highway bus booking, seat selection and live tracking for Sri Lanka.
+      <Text style={styles.subtitle}>
+        Smart highway bus booking with modern seat selection and secure travel experience.
       </Text>
 
       <View style={styles.badgeRow}>
-        <View style={[styles.badge, { backgroundColor: theme.tint }]}>
-          <Text style={styles.badgeText}>🎫 Seat Booking</Text>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>🎫 Smart Booking</Text>
         </View>
 
-        <View style={[styles.badge, { backgroundColor: theme.tint }]}>
+        <View style={styles.badge}>
           <Text style={styles.badgeText}>📍 Live Tracking</Text>
         </View>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.background }]}>
-        <Text style={[styles.cardTitle, { color: theme.text }]}>
-          Continue as Passenger
-        </Text>
+      <View style={styles.card}>
+        <Text style={styles.cardIcon}>👤</Text>
 
-        <Text style={[styles.cardText, { color: theme.icon }]}>
-          Search buses, select seats and manage your tickets.
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.primaryButton, { backgroundColor: theme.tint }]}
-          onPress={() => router.push("/login")}
-        >
-          <Text style={styles.primaryButtonText}>Passenger Login</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.outlineButton, { borderColor: theme.tint }]}
-          onPress={() => router.push("/register")}
-        >
-          <Text style={[styles.outlineText, { color: theme.tint }]}>
-            Create Passenger Account
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>Passenger Portal</Text>
+          <Text style={styles.cardText}>
+            Search buses, select seats, make payments and manage bookings.
           </Text>
-        </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => router.push("/login")}
+          >
+            <Text style={styles.primaryText}>Passenger Login ›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.outlineButton}
+            onPress={() => router.push("/register")}
+          >
+            <Text style={styles.outlineText}>Create Passenger Account ›</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.background }]}>
-        <Text style={[styles.cardTitle, { color: theme.text }]}>
-          Bus Owner Portal
-        </Text>
+      <View style={styles.card}>
+        <Text style={styles.ownerIcon}>🚌</Text>
 
-        <Text style={[styles.cardText, { color: theme.icon }]}>
-          Add buses, manage routes and view bookings after admin approval.
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.ownerButton, { backgroundColor: "#0E2A47" }]}
-          onPress={() => router.push("/owner-login")}
-        >
-          <Text style={styles.ownerButtonText}>Owner Login</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => router.push("/owner-register")}>
-          <Text style={[styles.ownerLink, { color: theme.tint }]}>
-            Register as Bus Owner
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle}>Bus Owner Portal</Text>
+          <Text style={styles.cardText}>
+            Add buses, manage routes and track passenger bookings.
           </Text>
-        </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.ownerButton}
+            onPress={() => router.push("/owner-login")}
+          >
+            <Text style={styles.ownerText}>Owner Login ›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.ownerOutline}
+            onPress={() => router.push("/owner-register")}
+          >
+            <Text style={styles.ownerOutlineText}>Register as Bus Owner ›</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <Text style={[styles.footer, { color: theme.icon }]}>
-        Fast • Secure • Smart Travel
-      </Text>
+      <View style={styles.features}>
+        <View style={styles.featureItem}>
+          <Text style={styles.featureIcon}>🛡️</Text>
+          <Text style={styles.featureTitle}>Fast</Text>
+          <Text style={styles.featureText}>Quick and easy booking</Text>
+        </View>
+
+        <View style={styles.featureItem}>
+          <Text style={styles.featureIcon}>🔒</Text>
+          <Text style={styles.featureTitle}>Secure</Text>
+          <Text style={styles.featureText}>Safe payments</Text>
+        </View>
+
+        <View style={styles.featureItem}>
+          <Text style={styles.featureIcon}>📍</Text>
+          <Text style={styles.featureTitle}>Smart</Text>
+          <Text style={styles.featureText}>Live tracking</Text>
+        </View>
+      </View>
+
+      <Text style={styles.footer}>© 2026 HighwayGo LK</Text>
     </ScrollView>
   );
 }
@@ -105,116 +122,190 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: 24,
-    paddingTop: 55,
+    paddingBottom: 25,
     alignItems: "center",
   },
 
-  logo: {
-    width: 170,
-    height: 170,
-    marginBottom: 5,
+  heroImage: {
+    width: "100%",
+    height: 260,
+    borderBottomLeftRadius: 36,
+    borderBottomRightRadius: 36,
+    marginBottom: 24,
   },
 
   title: {
-    fontSize: 36,
-    fontWeight: "bold",
-    marginBottom: 8,
+    fontSize: 42,
+    fontWeight: "900",
+    color: "#071A2F",
+    marginBottom: 10,
   },
 
   subtitle: {
-    fontSize: 16,
+    fontSize: 17,
+    color: "#4B5B73",
     textAlign: "center",
-    lineHeight: 24,
-    marginBottom: 18,
+    lineHeight: 26,
+    paddingHorizontal: 28,
+    marginBottom: 22,
   },
 
   badgeRow: {
     flexDirection: "row",
-    gap: 10,
-    marginBottom: 20,
+    gap: 12,
+    marginBottom: 24,
   },
 
   badge: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: "#E8F1FF",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 30,
   },
 
   badgeText: {
-    color: "#071A2F",
-    fontWeight: "bold",
-    fontSize: 12,
+    color: "#0B4FD8",
+    fontSize: 14,
+    fontWeight: "800",
   },
 
   card: {
-    width: "100%",
-    borderRadius: 24,
+    width: "90%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
     padding: 22,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "rgba(150,150,150,0.25)",
+    marginBottom: 22,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+
+  cardIcon: {
+    fontSize: 58,
+    backgroundColor: "#E8F1FF",
+    padding: 18,
+    borderRadius: 60,
+    marginRight: 18,
+  },
+
+  ownerIcon: {
+    fontSize: 52,
+    backgroundColor: "#FFF1B8",
+    padding: 18,
+    borderRadius: 60,
+    marginRight: 18,
+  },
+
+  cardContent: {
+    flex: 1,
   },
 
   cardTitle: {
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: "900",
+    color: "#071A2F",
     marginBottom: 8,
   },
 
   cardText: {
     fontSize: 14,
+    color: "#4B5B73",
     lineHeight: 21,
-    marginBottom: 16,
+    marginBottom: 14,
   },
 
   primaryButton: {
-    padding: 15,
-    borderRadius: 16,
+    backgroundColor: "#1457D9",
+    padding: 14,
+    borderRadius: 15,
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
 
-  primaryButtonText: {
-    color: "#071A2F",
-    fontSize: 17,
-    fontWeight: "bold",
+  primaryText: {
+    color: "#fff",
+    fontWeight: "900",
+    fontSize: 15,
   },
 
   outlineButton: {
-    padding: 14,
-    borderRadius: 16,
     borderWidth: 1.5,
+    borderColor: "#1457D9",
+    padding: 13,
+    borderRadius: 15,
     alignItems: "center",
   },
 
   outlineText: {
-    fontSize: 15,
-    fontWeight: "bold",
+    color: "#1457D9",
+    fontWeight: "900",
+    fontSize: 14,
   },
 
   ownerButton: {
-    padding: 15,
-    borderRadius: 16,
+    backgroundColor: "#071A2F",
+    padding: 14,
+    borderRadius: 15,
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 10,
   },
 
-  ownerButtonText: {
+  ownerText: {
     color: "#FFD447",
-    fontSize: 17,
-    fontWeight: "bold",
+    fontWeight: "900",
+    fontSize: 15,
   },
 
-  ownerLink: {
+  ownerOutline: {
+    borderWidth: 1.5,
+    borderColor: "#F5A400",
+    padding: 13,
+    borderRadius: 15,
+    alignItems: "center",
+  },
+
+  ownerOutlineText: {
+    color: "#F5A400",
+    fontWeight: "900",
+    fontSize: 14,
+  },
+
+  features: {
+    width: "90%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 8,
+    marginBottom: 24,
+  },
+
+  featureItem: {
+    width: "30%",
+    alignItems: "center",
+  },
+
+  featureIcon: {
+    fontSize: 32,
+    marginBottom: 8,
+  },
+
+  featureTitle: {
+    color: "#071A2F",
+    fontSize: 16,
+    fontWeight: "900",
+  },
+
+  featureText: {
+    color: "#4B5B73",
+    fontSize: 12,
     textAlign: "center",
-    fontSize: 15,
-    fontWeight: "700",
+    marginTop: 4,
   },
 
   footer: {
-    marginTop: 6,
-    marginBottom: 20,
+    color: "#667085",
     fontSize: 13,
     fontWeight: "600",
   },

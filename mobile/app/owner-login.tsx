@@ -1,255 +1,194 @@
 import { useState } from "react";
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   Alert,
-  useColorScheme,
   ScrollView,
+  Image,
+  View,
 } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
-import { Colors } from "../constants/colors";
 
 export default function OwnerLogin() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark"
-    ? Colors.dark
-    : Colors.light;
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleOwnerLogin = async () => {
-
     if (!email || !password) {
       Alert.alert("Error", "Please fill all fields");
       return;
     }
 
     try {
+      const response = await API.post("/owners/login", { email, password });
 
-      const response = await API.post(
-        "/owners/login",
-        {
-          email,
-          password,
-        }
-      );
+      await AsyncStorage.setItem("ownerToken", response.data.token);
 
-      // SAVE OWNER TOKEN
-      await AsyncStorage.setItem(
-        "ownerToken",
-        response.data.token
-      );
-
-      Alert.alert(
-        "Success",
-        "Owner login successful"
-      );
-
+      Alert.alert("Success", "Owner login successful");
       router.push("/owner-dashboard");
-
     } catch (error: any) {
+      console.log("OWNER LOGIN ERROR:", error.response?.data || error.message);
 
       Alert.alert(
-        "Error",
+        "Owner Login Failed",
         error.response?.data?.message ||
           error.response?.data?.error ||
-          "Login failed"
+          error.message ||
+          "Owner login failed"
       );
     }
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        { backgroundColor: theme.background },
-      ]}
-    >
-      <Text
-        style={[
-          styles.logo,
-          { color: theme.tint },
-        ]}
-      >
-        HighwayGo LK
+    <ScrollView contentContainerStyle={styles.container}>
+      <Image
+        source={require("../assets/images/auth-bus.png")}
+        style={styles.heroImage}
+        resizeMode="cover"
+      />
+
+      <Text style={styles.logo}>HighwayGo LK</Text>
+
+      <Text style={styles.title}>Owner Login 🚌</Text>
+
+      <Text style={styles.subtitle}>
+        Login to manage buses, routes and passenger bookings.
       </Text>
 
-      <Text
-        style={[
-          styles.title,
-          { color: theme.text },
-        ]}
-      >
-        Owner Login 🚌
-      </Text>
-
-      <Text
-        style={[
-          styles.subtitle,
-          { color: theme.icon },
-        ]}
-      >
-        Login to manage your buses
-      </Text>
-
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: theme.background },
-        ]}
-      >
-
-        <Text
-          style={[
-            styles.label,
-            { color: theme.text },
-          ]}
-        >
-          Email
-        </Text>
-
+      <View style={styles.card}>
+        <Text style={styles.label}>Email</Text>
         <TextInput
-          style={[
-            styles.input,
-            {
-              color: theme.text,
-              borderColor: theme.icon,
-            },
-          ]}
-          placeholder="Enter email"
-          placeholderTextColor={theme.icon}
+          style={styles.input}
+          placeholder="Enter owner email"
+          placeholderTextColor="#8A98AA"
           keyboardType="email-address"
+          autoCapitalize="none"
           value={email}
           onChangeText={setEmail}
         />
 
-        <Text
-          style={[
-            styles.label,
-            { color: theme.text },
-          ]}
-        >
-          Password
-        </Text>
-
+        <Text style={styles.label}>Password</Text>
         <TextInput
-          style={[
-            styles.input,
-            {
-              color: theme.text,
-              borderColor: theme.icon,
-            },
-          ]}
+          style={styles.input}
           placeholder="Enter password"
-          placeholderTextColor={theme.icon}
+          placeholderTextColor="#8A98AA"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
 
-        <TouchableOpacity
-          style={[
-            styles.button,
-            { backgroundColor: theme.tint },
-          ]}
-          onPress={handleOwnerLogin}
-        >
-          <Text style={styles.buttonText}>
-            Login
-          </Text>
+        <TouchableOpacity style={styles.ownerButton} onPress={handleOwnerLogin}>
+          <Text style={styles.ownerButtonText}>Owner Login ›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() =>
-            router.push("/owner-register")
-          }
+          style={styles.outlineButton}
+          onPress={() => router.push("/owner-register")}
         >
-          <Text
-            style={[
-              styles.linkText,
-              { color: theme.tint },
-            ]}
-          >
-            Don't have an owner account?
-          </Text>
+          <Text style={styles.outlineText}>Register as Bus Owner</Text>
         </TouchableOpacity>
-
       </View>
+
+      <TouchableOpacity onPress={() => router.push("/login")}>
+        <Text style={styles.passengerLink}>Login as Passenger</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flexGrow: 1,
-    padding: 24,
-    paddingTop: 90,
+    backgroundColor: "#F4F8FF",
+    alignItems: "center",
+    paddingBottom: 30,
   },
-
+  heroImage: {
+    width: "100%",
+    height: 240,
+    borderBottomLeftRadius: 38,
+    borderBottomRightRadius: 38,
+    marginBottom: 22,
+  },
   logo: {
-    fontSize: 32,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 25,
-  },
-
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-
-  subtitle: {
-    fontSize: 15,
-    textAlign: "center",
-    marginTop: 8,
-    marginBottom: 35,
-  },
-
-  card: {
-    borderRadius: 24,
-    padding: 22,
-  },
-
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
+    fontSize: 38,
+    fontWeight: "900",
+    color: "#071A2F",
     marginBottom: 8,
   },
-
+  title: {
+    fontSize: 28,
+    fontWeight: "900",
+    color: "#071A2F",
+  },
+  subtitle: {
+    color: "#4B5B73",
+    fontSize: 16,
+    textAlign: "center",
+    lineHeight: 24,
+    paddingHorizontal: 30,
+    marginTop: 8,
+    marginBottom: 22,
+  },
+  card: {
+    width: "90%",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 5,
+  },
+  label: {
+    color: "#071A2F",
+    fontSize: 15,
+    fontWeight: "800",
+    marginBottom: 8,
+  },
   input: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 15,
+    borderWidth: 1.5,
+    borderColor: "#D8E2F0",
+    borderRadius: 18,
+    padding: 16,
     marginBottom: 18,
     fontSize: 16,
+    color: "#071A2F",
+    backgroundColor: "#F8FBFF",
   },
-
-  button: {
+  ownerButton: {
+    backgroundColor: "#071A2F",
     padding: 16,
     borderRadius: 18,
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 6,
+    marginBottom: 12,
   },
-
-  buttonText: {
-    color: "#071A2F",
-    fontSize: 18,
-    fontWeight: "bold",
+  ownerButtonText: {
+    color: "#FFD447",
+    fontSize: 17,
+    fontWeight: "900",
   },
-
-  linkText: {
-    textAlign: "center",
-    marginTop: 24,
+  outlineButton: {
+    borderWidth: 1.5,
+    borderColor: "#F5A400",
+    padding: 15,
+    borderRadius: 18,
+    alignItems: "center",
+  },
+  outlineText: {
+    color: "#F5A400",
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "900",
   },
-
+  passengerLink: {
+    color: "#1457D9",
+    fontSize: 15,
+    fontWeight: "800",
+    marginTop: 22,
+  },
 });
