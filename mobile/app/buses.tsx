@@ -6,6 +6,7 @@ import {
   FlatList,
   TouchableOpacity,
   Alert,
+  Image,
 } from "react-native";
 import { router } from "expo-router";
 import API from "../services/api";
@@ -20,6 +21,7 @@ type Bus = {
   arrivalTime?: string;
   price: number;
   totalSeats: number;
+  imageUrl: string;
 };
 
 export default function Buses() {
@@ -31,7 +33,10 @@ export default function Buses() {
       const res = await API.get("/buses");
       setBuses(res.data);
     } catch (error: any) {
-      Alert.alert("Error", error.response?.data?.message || "Failed to load buses");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to load buses"
+      );
     } finally {
       setLoading(false);
     }
@@ -54,6 +59,12 @@ export default function Buses() {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <View style={styles.card}>
+              <Image
+                source={{ uri: item.imageUrl }}
+                style={styles.busImage}
+                resizeMode="cover"
+              />
+
               <Text style={styles.busName}>{item.busName}</Text>
               <Text style={styles.busNumber}>{item.busNumber}</Text>
 
@@ -62,11 +73,21 @@ export default function Buses() {
               </Text>
 
               <Text style={styles.info}>Departure: {item.departureTime}</Text>
-              <Text style={styles.info}>Arrival: {item.arrivalTime || "N/A"}</Text>
+
+              <Text style={styles.info}>
+                Arrival: {item.arrivalTime || "N/A"}
+              </Text>
+
               <Text style={styles.price}>LKR {item.price}</Text>
+
               <Text style={styles.info}>Seats: {item.totalSeats}</Text>
 
-              <TouchableOpacity style={styles.button}>
+              <TouchableOpacity
+                style={styles.button}
+                onPress={() =>
+                  router.push(`/seat-selection?busId=${item._id}`)
+                }
+              >
                 <Text style={styles.buttonText}>Book Now</Text>
               </TouchableOpacity>
             </View>
@@ -74,7 +95,10 @@ export default function Buses() {
         />
       )}
 
-      <TouchableOpacity style={styles.backButton} onPress={() => router.push("/home")}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.push("/home")}
+      >
         <Text style={styles.backText}>Back Home</Text>
       </TouchableOpacity>
     </View>
@@ -88,6 +112,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 60,
   },
+
   title: {
     color: "#FFD447",
     fontSize: 28,
@@ -95,43 +120,59 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+
   loading: {
     color: "#fff",
     textAlign: "center",
     marginTop: 30,
   },
+
   card: {
     backgroundColor: "#fff",
     borderRadius: 16,
     padding: 18,
     marginBottom: 15,
   },
+
+  busImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 12,
+    marginBottom: 12,
+    backgroundColor: "#ddd",
+  },
+
   busName: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#0B1E3D",
   },
+
   busNumber: {
     color: "#555",
     marginBottom: 10,
   },
+
   route: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#0B1E3D",
     marginBottom: 10,
   },
+
   info: {
     fontSize: 15,
     color: "#333",
     marginBottom: 5,
   },
+
   price: {
     fontSize: 18,
     color: "#0B1E3D",
     fontWeight: "bold",
     marginVertical: 8,
   },
+
   button: {
     backgroundColor: "#FFD447",
     padding: 12,
@@ -139,11 +180,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
+
   buttonText: {
     color: "#0B1E3D",
     fontWeight: "bold",
     fontSize: 16,
   },
+
   backButton: {
     borderWidth: 1,
     borderColor: "#FFD447",
@@ -152,6 +195,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
+
   backText: {
     color: "#FFD447",
     fontWeight: "bold",

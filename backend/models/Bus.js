@@ -9,6 +9,7 @@ const busSchema = new mongoose.Schema({
   arrivalTime: { type: String },
   price: { type: Number, required: true },
   totalSeats: { type: Number, required: true },
+  imageUrl: { type: String, required: true },
 });
 
 module.exports = mongoose.model("Bus", busSchema);
