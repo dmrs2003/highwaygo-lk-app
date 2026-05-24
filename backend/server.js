@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const protect = require("./middleware/authMiddleware");
+const busRoutes = require("./routes/busRoutes");
 
 require("dotenv").config();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/buses", busRoutes);
 
 // DB connect
 mongoose.connect(process.env.MONGO_URI)
