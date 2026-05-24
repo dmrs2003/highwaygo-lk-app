@@ -65,7 +65,9 @@ export default function SeatSelection() {
       );
 
       Alert.alert("Success", "Seats booked successfully");
-      router.push("/home");
+      router.push(
+        `/booking-success?seats=${selectedSeats.join(",")}&date=${travelDate}`
+        );
     } catch (error: any) {
       Alert.alert("Error", error.response?.data?.message || "Booking failed");
     }
