@@ -5,202 +5,357 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  useColorScheme,
+  Image,
 } from "react-native";
-import { darkTheme, lightTheme } from "../constants/colors";
 
 export default function OwnerDashboard() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
-
   return (
-    <ScrollView
-      contentContainerStyle={[styles.container, { backgroundColor: theme.bg }]}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={[styles.title, { color: theme.text }]}>Owner Dashboard 🚌</Text>
+    <View style={styles.wrapper}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.logo}>
+              HighwayGo <Text style={styles.logoBlue}>LK</Text>
+            </Text>
+            <Text style={styles.subtitle}>Owner Control Center</Text>
+          </View>
 
-      <Text style={[styles.subtitle, { color: theme.muted }]}>
-        Manage your buses and bookings
-      </Text>
+          <View style={styles.profileCircle}>
+            <Text style={styles.profileIcon}>🚌</Text>
+          </View>
+        </View>
 
-      <View style={[styles.heroCard, { backgroundColor: theme.card }]}>
-        <Text style={[styles.heroTitle, { color: theme.primary }]}>
-          Welcome, Bus Owner
-        </Text>
+        <Image
+          source={require("../assets/images/index-bus.png")}
+          style={styles.heroImage}
+          resizeMode="cover"
+        />
 
-        <Text style={[styles.heroText, { color: theme.muted }]}>
-          Add buses, manage schedules, and track passenger bookings.
-        </Text>
+        <View style={styles.heroCard}>
+          <Text style={styles.heroTitle}>Welcome, Bus Owner 👋</Text>
+          <Text style={styles.heroText}>
+            Manage your buses, routes, bookings and revenue from one dashboard.
+          </Text>
+
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => router.push("/add-bus")}
+          >
+            <Text style={styles.primaryText}>➕ Add New Bus</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.sectionTitle}>Business Overview</Text>
+
+        <View style={styles.grid}>
+          <StatCard icon="🚌" value="0" label="Total Buses" />
+          <StatCard icon="🎫" value="0" label="Bookings" />
+        </View>
+
+        <View style={styles.grid}>
+          <StatCard icon="💰" value="LKR 0" label="Revenue" />
+          <StatCard icon="⭐" value="4.8" label="Rating" />
+        </View>
+
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
+
+        <MenuCard
+          icon="➕"
+          title="Add Bus"
+          text="Create new bus route and schedule"
+          onPress={() => router.push("/add-bus")}
+        />
+
+        <MenuCard
+          icon="📋"
+          title="My Buses"
+          text="View and manage your buses"
+          onPress={() => router.push("/manage-buses")}
+        />
+
+        <MenuCard
+          icon="🎫"
+          title="Passenger Bookings"
+          text="Check seats and passenger reservations"
+          onPress={() => router.push("/owner-bookings")}
+        />
+
+        <MenuCard
+          icon="📊"
+          title="Analytics"
+          text="View booking and revenue insights"
+        />
 
         <TouchableOpacity
-          style={[styles.primaryButton, { backgroundColor: theme.primary }]}
-          onPress={() => router.push("/add-bus")}
+          style={styles.logoutButton}
+          onPress={() => router.replace("/owner-login")}
         >
-          <Text style={styles.primaryButtonText}>Add New Bus +</Text>
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
+      </ScrollView>
+
+      <View style={styles.bottomNav}>
+        <NavItem
+          icon="🏠"
+          label="Home"
+          active
+          onPress={() => router.push("/owner-dashboard")}
+        />
+
+        <NavItem
+          icon="🚌"
+          label="Buses"
+          onPress={() => router.push("/manage-buses")}
+        />
+
+        <NavItem
+          icon="🎫"
+          label="Bookings"
+          onPress={() => router.push("/owner-bookings")}
+        />
+
+        <NavItem icon="👤" label="Profile" />
+      </View>
+    </View>
+  );
+}
+
+function StatCard({ icon, value, label }: any) {
+  return (
+    <View style={styles.statCard}>
+      <Text style={styles.statIcon}>{icon}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function MenuCard({ icon, title, text, onPress }: any) {
+  return (
+    <TouchableOpacity style={styles.menuCard} onPress={onPress}>
+      <View style={styles.menuIconBox}>
+        <Text style={styles.menuIcon}>{icon}</Text>
       </View>
 
-      <View style={styles.grid}>
-        <View style={[styles.statCard, { backgroundColor: theme.card }]}>
-          <Text style={styles.icon}>🚌</Text>
-          <Text style={[styles.statNumber, { color: theme.text }]}>0</Text>
-          <Text style={[styles.statLabel, { color: theme.muted }]}>Buses</Text>
-        </View>
-
-        <View style={[styles.statCard, { backgroundColor: theme.card }]}>
-          <Text style={styles.icon}>🎫</Text>
-          <Text style={[styles.statNumber, { color: theme.text }]}>0</Text>
-          <Text style={[styles.statLabel, { color: theme.muted }]}>Bookings</Text>
-        </View>
+      <View style={styles.menuTextBox}>
+        <Text style={styles.menuTitle}>{title}</Text>
+        <Text style={styles.menuSub}>{text}</Text>
       </View>
 
-      <View style={styles.grid}>
-        <View style={[styles.statCard, { backgroundColor: theme.card }]}>
-          <Text style={styles.icon}>💰</Text>
-          <Text style={[styles.statNumber, { color: theme.text }]}>LKR 0</Text>
-          <Text style={[styles.statLabel, { color: theme.muted }]}>Revenue</Text>
-        </View>
+      <Text style={styles.menuArrow}>›</Text>
+    </TouchableOpacity>
+  );
+}
 
-        <View style={[styles.statCard, { backgroundColor: theme.card }]}>
-          <Text style={styles.icon}>⭐</Text>
-          <Text style={[styles.statNumber, { color: theme.text }]}>4.8</Text>
-          <Text style={[styles.statLabel, { color: theme.muted }]}>Rating</Text>
-        </View>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.menuCard, { backgroundColor: theme.card }]}
-        onPress={() => router.push("/add-bus")}
-      >
-        <Text style={[styles.menuText, { color: theme.text }]}>➕ Add Bus</Text>
-        <Text style={[styles.menuArrow, { color: theme.primary }]}>›</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.menuCard, { backgroundColor: theme.card }]}>
-        <Text style={[styles.menuText, { color: theme.text }]}>📋 My Buses</Text>
-        <Text style={[styles.menuArrow, { color: theme.primary }]}>›</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={[styles.menuCard, { backgroundColor: theme.card }]}>
-        <Text style={[styles.menuText, { color: theme.text }]}>🎫 Owner Bookings</Text>
-        <Text style={[styles.menuArrow, { color: theme.primary }]}>›</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.logoutButton, { borderColor: theme.primary }]}
-        onPress={() => router.replace("/login")}
-      >
-        <Text style={[styles.logoutText, { color: theme.primary }]}>Logout</Text>
-      </TouchableOpacity>
-    </ScrollView>
+function NavItem({ icon, label, active, onPress }: any) {
+  return (
+    <TouchableOpacity style={styles.navItem} onPress={onPress}>
+      <Text style={active ? styles.navIconActive : styles.navIcon}>{icon}</Text>
+      <Text style={active ? styles.navTextActive : styles.navText}>
+        {label}
+      </Text>
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 22,
-    paddingTop: 60,
+  wrapper: {
+    flex: 1,
+    backgroundColor: "#F4F8FF",
+    paddingTop: 55,
+    paddingHorizontal: 20,
   },
-
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-  },
-
-  subtitle: {
-    fontSize: 15,
-    marginTop: 8,
-    marginBottom: 24,
-  },
-
-  heroCard: {
-    borderRadius: 24,
-    padding: 22,
-    marginBottom: 18,
-  },
-
-  heroTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-  },
-
-  heroText: {
-    fontSize: 15,
-    lineHeight: 23,
-    marginBottom: 20,
-  },
-
-  primaryButton: {
-    padding: 15,
-    borderRadius: 16,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
   },
-
-  primaryButtonText: {
+  logo: {
+    fontSize: 25,
+    fontWeight: "900",
     color: "#071A2F",
-    fontSize: 17,
-    fontWeight: "bold",
   },
-
+  logoBlue: {
+    color: "#1457D9",
+  },
+  subtitle: {
+    color: "#667085",
+    fontSize: 13,
+    marginTop: 4,
+    fontWeight: "700",
+  },
+  profileCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: "#E8F1FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  profileIcon: {
+    fontSize: 24,
+  },
+  heroImage: {
+    width: "100%",
+    height: 190,
+    borderRadius: 28,
+    marginTop: 22,
+    marginBottom: 20,
+  },
+  heroCard: {
+    backgroundColor: "#1457D9",
+    borderRadius: 28,
+    padding: 22,
+    marginBottom: 26,
+  },
+  heroTitle: {
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "900",
+    marginBottom: 8,
+  },
+  heroText: {
+    color: "#DCE9FF",
+    fontSize: 15,
+    lineHeight: 23,
+    marginBottom: 18,
+  },
+  primaryButton: {
+    backgroundColor: "#FFD447",
+    padding: 16,
+    borderRadius: 18,
+    alignItems: "center",
+  },
+  primaryText: {
+    color: "#071A2F",
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  sectionTitle: {
+    color: "#071A2F",
+    fontSize: 22,
+    fontWeight: "900",
+    marginBottom: 16,
+  },
   grid: {
     flexDirection: "row",
     gap: 14,
     marginBottom: 14,
   },
-
   statCard: {
     flex: 1,
-    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
     padding: 18,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
   },
-
-  icon: {
-    fontSize: 26,
+  statIcon: {
+    fontSize: 28,
     marginBottom: 10,
   },
-
-  statNumber: {
+  statValue: {
+    color: "#071A2F",
     fontSize: 22,
-    fontWeight: "bold",
+    fontWeight: "900",
   },
-
   statLabel: {
+    color: "#667085",
+    marginTop: 4,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  menuCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    padding: 16,
+    marginBottom: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
+  },
+  menuIconBox: {
+    width: 50,
+    height: 50,
+    borderRadius: 17,
+    backgroundColor: "#E8F1FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 14,
+  },
+  menuIcon: {
+    fontSize: 24,
+  },
+  menuTextBox: {
+    flex: 1,
+  },
+  menuTitle: {
+    color: "#071A2F",
+    fontSize: 17,
+    fontWeight: "900",
+  },
+  menuSub: {
+    color: "#667085",
     fontSize: 13,
     marginTop: 4,
+    fontWeight: "600",
   },
-
-  menuCard: {
-    borderRadius: 18,
-    padding: 18,
-    marginTop: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  menuText: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-
   menuArrow: {
-    fontSize: 30,
-    fontWeight: "bold",
+    color: "#1457D9",
+    fontSize: 34,
+    fontWeight: "900",
   },
-
   logoutButton: {
-    marginTop: 24,
+    borderWidth: 1.5,
+    borderColor: "#1457D9",
     padding: 15,
     borderRadius: 18,
-    borderWidth: 2,
+    alignItems: "center",
+    marginTop: 8,
+    marginBottom: 110,
+  },
+  logoutText: {
+    color: "#1457D9",
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  bottomNav: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 78,
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    flexDirection: "row",
+    justifyContent: "space-around",
     alignItems: "center",
   },
-
-  logoutText: {
-    fontSize: 16,
-    fontWeight: "bold",
+  navItem: {
+    alignItems: "center",
+  },
+  navIcon: {
+    fontSize: 22,
+    opacity: 0.55,
+  },
+  navIconActive: {
+    fontSize: 24,
+  },
+  navText: {
+    color: "#667085",
+    fontSize: 12,
+    marginTop: 4,
+  },
+  navTextActive: {
+    color: "#1457D9",
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: "900",
   },
 });

@@ -1,5 +1,9 @@
 const Booking = require("../models/Booking");
 const Bus = require("../models/Bus");
+const User = require("../models/User");
+const nodemailer = require("nodemailer");
+const path = require("path");
+const generateReceipt = require("../utils/generateReceipt");
 
 // ================= GET SEAT STATUS =================
 
@@ -56,7 +60,11 @@ exports.bookSeat = async (req, res) => {
     const { busId, seatNumbers, travelDate } = req.body;
     const userId = req.user;
 
-    if (!seatNumbers || !Array.isArray(seatNumbers) || seatNumbers.length === 0) {
+    if (
+      !seatNumbers ||
+      !Array.isArray(seatNumbers) ||
+      seatNumbers.length === 0
+    ) {
       return res.status(400).json({
         message: "Please select at least one seat",
       });
@@ -102,9 +110,41 @@ exports.bookSeat = async (req, res) => {
       status: "confirmed",
     });
 
+    const user = await User.findById(userId);
+
+    let receiptPath = null;
+
+    try {
+      receiptPath = generateReceipt(booking, bus, user);
+
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
+
+      await transporter.sendMail({
+        from: process.env.EMAIL,
+        to: user.email,
+        subject: "HighwayGo LK Booking Receipt",
+        text: "Your HighwayGo LK booking receipt is attached.",
+        attachments: [
+          {
+            filename: `receipt-${booking._id}.pdf`,
+            path: receiptPath,
+          },
+        ],
+      });
+    } catch (emailError) {
+      console.log("Receipt email failed:", emailError.message);
+    }
+
     res.status(201).json({
       message: "Seats booked successfully",
       booking,
+      receiptDownloadUrl: `/api/bookings/receipt/${booking._id}`,
       bus: {
         busName: bus.busName,
         busNumber: bus.busNumber,
@@ -133,6 +173,24 @@ exports.getMyBookings = async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.json(bookings);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+// ================= DOWNLOAD RECEIPT =================
+
+exports.downloadReceipt = async (req, res) => {
+  try {
+    const receiptPath = path.join(
+      __dirname,
+      "../receipts",
+      `receipt-${req.params.bookingId}.pdf`
+    );
+
+    res.download(receiptPath);
   } catch (error) {
     res.status(500).json({
       error: error.message,

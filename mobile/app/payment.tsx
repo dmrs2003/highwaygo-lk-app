@@ -6,18 +6,13 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  useColorScheme,
   View,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
-import { Colors } from "../constants/colors";
 
 export default function Payment() {
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? Colors.dark : Colors.light;
-
   const { busId, seats, date, amount } = useLocalSearchParams<{
     busId: string;
     seats: string;
@@ -53,12 +48,11 @@ export default function Payment() {
         }
       );
 
-      Alert.alert("Success", "Payment successful and seats booked");
-
-      router.push(`/booking-success?seats=${seats}&date=${date}`);
+      Alert.alert("Success", "Payment successful");
+      router.push(`/booking-success?seats=${seats}&date=${date}&amount=${amount}`);
     } catch (error: any) {
       Alert.alert(
-        "Error",
+        "Payment Failed",
         error.response?.data?.message ||
           error.response?.data?.error ||
           "Payment failed"
@@ -67,50 +61,60 @@ export default function Payment() {
   };
 
   return (
-    <ScrollView
-      contentContainerStyle={[
-        styles.container,
-        { backgroundColor: theme.background },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
-      <Text style={[styles.title, { color: theme.text }]}>
-        Secure Payment 💳
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.title}>Secure Payment 💳</Text>
+
+      <Text style={styles.subtitle}>
+        Demo sandbox payment — no real money will be charged.
       </Text>
 
-      <Text style={[styles.subtitle, { color: theme.icon }]}>
-        Demo payment mode — no real money will be charged.
-      </Text>
+      <View style={styles.amountCard}>
+        <Text style={styles.amountLabel}>Total Amount</Text>
+        <Text style={styles.amount}>LKR {amount || "0"}</Text>
 
-      <View style={[styles.amountCard, { backgroundColor: theme.background }]}>
-        <Text style={[styles.amountLabel, { color: theme.icon }]}>
-          Total Amount
-        </Text>
+        <View style={styles.ticketRow}>
+          <Text style={styles.ticketLabel}>Seats</Text>
+          <Text style={styles.ticketValue}>{seats}</Text>
+        </View>
 
-        <Text style={[styles.amount, { color: theme.tint }]}>
-          LKR {amount || "0"}
-        </Text>
-
-        <Text style={[styles.seats, { color: theme.text }]}>
-          Seats: {seats}
-        </Text>
+        <View style={styles.ticketRow}>
+          <Text style={styles.ticketLabel}>Travel Date</Text>
+          <Text style={styles.ticketValue}>{date}</Text>
+        </View>
       </View>
 
-      <View style={[styles.card, { backgroundColor: theme.background }]}>
+      <View style={styles.cardPreview}>
+        <View>
+          <Text style={styles.cardSmall}>HIGHWAYGO LK</Text>
+          <Text style={styles.cardNumber}>
+            {cardNumber ? cardNumber : "4242 4242 4242 4242"}
+          </Text>
+        </View>
+
+        <View style={styles.cardBottom}>
+          <Text style={styles.cardName}>
+            {cardName || "CARD HOLDER"}
+          </Text>
+          <Text style={styles.cardExpiry}>
+            {expiry || "12/28"}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.formCard}>
         <Input
           label="Card Holder Name"
           value={cardName}
           setValue={setCardName}
-          theme={theme}
+          placeholder="Ramindu Sulakkana"
         />
 
         <Input
           label="Card Number"
           value={cardNumber}
           setValue={setCardNumber}
-          theme={theme}
-          keyboardType="numeric"
           placeholder="4242 4242 4242 4242"
+          keyboardType="numeric"
         />
 
         <View style={styles.row}>
@@ -119,7 +123,6 @@ export default function Payment() {
               label="Expiry"
               value={expiry}
               setValue={setExpiry}
-              theme={theme}
               placeholder="12/28"
             />
           </View>
@@ -129,25 +132,19 @@ export default function Payment() {
               label="CVV"
               value={cvv}
               setValue={setCvv}
-              theme={theme}
-              keyboardType="numeric"
               placeholder="123"
+              keyboardType="numeric"
               secureTextEntry
             />
           </View>
         </View>
 
-        <TouchableOpacity
-          style={[styles.button, { backgroundColor: theme.tint }]}
-          onPress={handleFakePayment}
-        >
-          <Text style={styles.buttonText}>Pay & Confirm Booking</Text>
+        <TouchableOpacity style={styles.payButton} onPress={handleFakePayment}>
+          <Text style={styles.payText}>Pay & Confirm Booking ›</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={[styles.backText, { color: theme.tint }]}>
-            Back to Seats
-          </Text>
+          <Text style={styles.backText}>Back to Seat Selection</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -158,25 +155,18 @@ function Input({
   label,
   value,
   setValue,
-  theme,
-  keyboardType = "default",
   placeholder,
+  keyboardType = "default",
   secureTextEntry = false,
 }: any) {
   return (
     <View>
-      <Text style={[styles.label, { color: theme.text }]}>{label}</Text>
+      <Text style={styles.label}>{label}</Text>
 
       <TextInput
-        style={[
-          styles.input,
-          {
-            color: theme.text,
-            borderColor: theme.icon,
-          },
-        ]}
-        placeholder={placeholder || `Enter ${label}`}
-        placeholderTextColor={theme.icon}
+        style={styles.input}
+        placeholder={placeholder}
+        placeholderTextColor="#8A98AA"
         value={value}
         onChangeText={setValue}
         keyboardType={keyboardType}
@@ -189,66 +179,137 @@ function Input({
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
+    backgroundColor: "#F4F8FF",
     padding: 24,
-    paddingTop: 70,
+    paddingTop: 65,
   },
 
   title: {
+    color: "#071A2F",
     fontSize: 32,
-    fontWeight: "bold",
+    fontWeight: "900",
     textAlign: "center",
   },
 
   subtitle: {
+    color: "#667085",
     fontSize: 15,
     textAlign: "center",
     marginTop: 8,
-    marginBottom: 26,
+    marginBottom: 24,
+    lineHeight: 22,
   },
 
   amountCard: {
-    borderRadius: 24,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 26,
     padding: 22,
     marginBottom: 18,
-    borderWidth: 1,
-    borderColor: "rgba(150,150,150,0.25)",
-    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 5,
   },
 
   amountLabel: {
+    color: "#667085",
     fontSize: 14,
+    fontWeight: "700",
+    textAlign: "center",
   },
 
   amount: {
-    fontSize: 34,
-    fontWeight: "bold",
-    marginVertical: 8,
+    color: "#1457D9",
+    fontSize: 38,
+    fontWeight: "900",
+    textAlign: "center",
+    marginVertical: 12,
   },
 
-  seats: {
-    fontSize: 16,
-    fontWeight: "600",
+  ticketRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
   },
 
-  card: {
-    borderRadius: 24,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: "rgba(150,150,150,0.25)",
+  ticketLabel: {
+    color: "#667085",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  ticketValue: {
+    color: "#071A2F",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  cardPreview: {
+    height: 190,
+    borderRadius: 28,
+    backgroundColor: "#071A2F",
+    padding: 24,
+    justifyContent: "space-between",
+    marginBottom: 20,
+  },
+
+  cardSmall: {
+    color: "#FFD447",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  cardNumber: {
+    color: "#FFFFFF",
+    fontSize: 24,
+    fontWeight: "900",
+    letterSpacing: 2,
+    marginTop: 28,
+  },
+
+  cardBottom: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  cardName: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  cardExpiry: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
+
+  formCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 28,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 5,
   },
 
   label: {
+    color: "#071A2F",
     fontSize: 15,
-    fontWeight: "600",
+    fontWeight: "800",
     marginBottom: 8,
   },
 
   input: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 15,
+    borderWidth: 1.5,
+    borderColor: "#D8E2F0",
+    borderRadius: 18,
+    padding: 16,
     marginBottom: 16,
     fontSize: 16,
+    color: "#071A2F",
+    backgroundColor: "#F8FBFF",
   },
 
   row: {
@@ -260,23 +321,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  button: {
+  payButton: {
+    backgroundColor: "#1457D9",
     padding: 16,
     borderRadius: 18,
     alignItems: "center",
     marginTop: 8,
   },
 
-  buttonText: {
-    color: "#071A2F",
+  payText: {
+    color: "#FFFFFF",
     fontSize: 17,
-    fontWeight: "bold",
+    fontWeight: "900",
   },
 
   backText: {
+    color: "#1457D9",
     textAlign: "center",
     marginTop: 22,
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "900",
   },
 });

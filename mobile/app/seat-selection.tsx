@@ -6,32 +6,39 @@ import {
   TouchableOpacity,
   Alert,
   ScrollView,
-  useColorScheme,
 } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
-import { darkTheme, lightTheme } from "../constants/colors";
 
 export default function SeatSelection() {
   const { busId } = useLocalSearchParams<{ busId: string }>();
-  const colorScheme = useColorScheme();
-  const theme = colorScheme === "dark" ? darkTheme : lightTheme;
 
   const [totalSeats, setTotalSeats] = useState(0);
   const [lastRowSeats, setLastRowSeats] = useState(5);
   const [bookedSeats, setBookedSeats] = useState<number[]>([]);
   const [selectedSeats, setSelectedSeats] = useState<number[]>([]);
+  const [ticketPrice, setTicketPrice] = useState(0);
+
+  const [busName, setBusName] = useState("");
+  const [routeFrom, setRouteFrom] = useState("");
+  const [routeTo, setRouteTo] = useState("");
+  const [departureTime, setDepartureTime] = useState("");
 
   const travelDate = "2026-05-24";
-  const ticketPrice = 1500;
 
   const fetchSeats = async () => {
     try {
       const res = await API.get(`/bookings/seats/${busId}/${travelDate}`);
+
       setTotalSeats(res.data.totalSeats);
       setLastRowSeats(res.data.lastRowSeats);
       setBookedSeats(res.data.bookedSeats);
+      setTicketPrice(res.data.price);
+
+      setBusName(res.data.busName);
+      setRouteFrom(res.data.routeFrom);
+      setRouteTo(res.data.routeTo);
+      setDepartureTime(res.data.departureTime);
     } catch (error: any) {
       Alert.alert("Error", error.response?.data?.message || "Failed to load seats");
     }
@@ -49,28 +56,17 @@ export default function SeatSelection() {
     }
   };
 
-  const handleBookSeats = async () => {
+  const goToPayment = () => {
     if (selectedSeats.length === 0) {
       Alert.alert("Error", "Please select at least one seat");
       return;
     }
 
-    try {
-      const token = await AsyncStorage.getItem("token");
+    const amount = selectedSeats.length * ticketPrice;
 
-      await API.post(
-        "/bookings/book",
-        { busId, seatNumbers: selectedSeats, travelDate },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      Alert.alert("Success", "Seats booked successfully");
-      router.push(
-        `/booking-success?seats=${selectedSeats.join(",")}&date=${travelDate}`
-        );
-    } catch (error: any) {
-      Alert.alert("Error", error.response?.data?.message || "Booking failed");
-    }
+    router.push(
+      `/payment?busId=${busId}&seats=${selectedSeats.join(",")}&date=${travelDate}&amount=${amount}`
+    );
   };
 
   const SeatBox = ({ seatNo }: { seatNo: number }) => {
@@ -83,17 +79,15 @@ export default function SeatSelection() {
         onPress={() => toggleSeat(seatNo)}
         style={[
           styles.seat,
-          { borderColor: theme.green, backgroundColor: theme.green + "33" },
-          isBooked && { borderColor: theme.muted, backgroundColor: theme.muted + "22" },
-          isSelected && { borderColor: theme.primary, backgroundColor: theme.primary },
+          isBooked && styles.bookedSeat,
+          isSelected && styles.selectedSeat,
         ]}
       >
         <Text
           style={[
             styles.seatText,
-            { color: theme.green },
-            isBooked && { color: theme.muted },
-            isSelected && { color: "#071A2F" },
+            isBooked && styles.bookedSeatText,
+            isSelected && styles.selectedSeatText,
           ]}
         >
           {seatNo}
@@ -102,25 +96,25 @@ export default function SeatSelection() {
     );
   };
 
-  const renderSeatRows = () => {
+  const renderRows = () => {
     const rows = [];
     let seatNo = 1;
 
     while (seatNo <= totalSeats) {
-      const remainingSeats = totalSeats - seatNo + 1;
-      const isLastRow = remainingSeats <= lastRowSeats;
+      const remaining = totalSeats - seatNo + 1;
+      const isLastRow = remaining <= lastRowSeats;
 
       if (isLastRow) {
-        const lastRow = [];
+        const lastSeats = [];
 
         for (let i = 0; i < lastRowSeats && seatNo <= totalSeats; i++) {
-          lastRow.push(<SeatBox key={seatNo} seatNo={seatNo} />);
+          lastSeats.push(<SeatBox key={seatNo} seatNo={seatNo} />);
           seatNo++;
         }
 
         rows.push(
           <View key="last-row" style={styles.lastRow}>
-            {lastRow}
+            {lastSeats}
           </View>
         );
       } else {
@@ -146,146 +140,186 @@ export default function SeatSelection() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={[styles.iconButton, { backgroundColor: theme.card }]} onPress={() => router.back()}>
-          <Text style={[styles.iconText, { color: theme.text }]}>‹</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.back}>‹</Text>
         </TouchableOpacity>
 
-        <Text style={[styles.title, { color: theme.text }]}>Select Seat</Text>
+        <Text style={styles.title}>Select Seat</Text>
 
-        <View style={[styles.iconButton, { backgroundColor: theme.card }]}>
-          <Text style={[styles.locationText, { color: theme.primary }]}>⌖</Text>
-        </View>
+        <Text style={styles.location}>📍</Text>
       </View>
 
-      <View style={[styles.tripCard, { backgroundColor: theme.card }]}>
+      <View style={styles.tripCard}>
         <View>
-          <Text style={[styles.brand, { color: theme.primary }]}>🚌 HIGHWAYGO</Text>
-          <Text style={[styles.routeMain, { color: theme.text }]}>Colombo</Text>
-          <Text style={[styles.routeSub, { color: theme.muted }]}>Kandy</Text>
-          <Text style={[styles.via, { color: theme.primary }]}>Via Kurunegala</Text>
+          <Text style={styles.busName}>{busName || "HighwayGo Bus"}</Text>
+          <Text style={styles.route}>
+            {routeFrom || "From"} → {routeTo || "To"}
+          </Text>
         </View>
 
-        <View style={styles.tripRight}>
-          <Text style={[styles.time, { color: theme.text }]}>08:30 PM</Text>
-          <Text style={[styles.date, { color: theme.primary }]}>{travelDate}</Text>
+        <View>
+          <Text style={styles.time}>{departureTime || "Time"}</Text>
+          <Text style={styles.date}>{travelDate}</Text>
         </View>
       </View>
 
-      <View style={[styles.frontBox, { backgroundColor: theme.card }]}>
-        <Text style={[styles.frontText, { color: theme.muted }]}>FRONT</Text>
+      <View style={styles.frontBox}>
+        <Text style={styles.frontText}>FRONT</Text>
       </View>
 
       <View style={styles.legend}>
-        <Text style={[styles.legendText, { color: theme.text }]}>🟢 Available</Text>
-        <Text style={[styles.legendText, { color: theme.text }]}>🟡 Selected</Text>
-        <Text style={[styles.legendText, { color: theme.text }]}>🔴 Booked</Text>
+        <Text style={styles.legendText}>🟢 Available</Text>
+        <Text style={styles.legendText}>🟡 Selected</Text>
+        <Text style={styles.legendText}>⚪ Booked</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.busBody}>{renderSeatRows()}</View>
+        <View style={styles.busBody}>{renderRows()}</View>
       </ScrollView>
 
-      <View style={[styles.summaryCard, { backgroundColor: theme.card }]}>
+      <View style={styles.summaryCard}>
         <View>
-          <Text style={[styles.summaryLabel, { color: theme.text }]}>
+          <Text style={styles.summaryLabel}>
             Selected Seats ({selectedSeats.length})
           </Text>
-          <Text style={[styles.summarySeats, { color: theme.primary }]}>
+          <Text style={styles.summarySeats}>
             {selectedSeats.length ? selectedSeats.join(", ") : "None"}
           </Text>
         </View>
 
         <View>
-          <Text style={[styles.total, { color: theme.primary }]}>
+          <Text style={styles.total}>
             LKR {selectedSeats.length * ticketPrice}
           </Text>
-          <Text style={[styles.totalLabel, { color: theme.muted }]}>Total</Text>
+          <Text style={styles.totalLabel}>Total</Text>
         </View>
       </View>
 
-      <TouchableOpacity style={[styles.confirmButton, { backgroundColor: theme.primary }]} onPress={handleBookSeats}>
-        <Text style={styles.confirmText}>Confirm Seats →</Text>
+      <TouchableOpacity style={styles.confirmButton} onPress={goToPayment}>
+        <Text style={styles.confirmText}>Continue to Payment ›</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, paddingTop: 55 },
+  container: {
+    flex: 1,
+    backgroundColor: "#F4F8FF",
+    paddingTop: 55,
+    paddingHorizontal: 20,
+  },
 
   header: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 20,
-  },
-
-  iconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
     alignItems: "center",
-    justifyContent: "center",
+    marginBottom: 18,
   },
 
-  iconText: { fontSize: 34, fontWeight: "bold" },
-  locationText: { fontSize: 24 },
+  back: {
+    fontSize: 42,
+    color: "#071A2F",
+    fontWeight: "900",
+  },
 
-  title: { fontSize: 24, fontWeight: "bold" },
+  title: {
+    color: "#071A2F",
+    fontSize: 22,
+    fontWeight: "900",
+  },
+
+  location: {
+    fontSize: 22,
+  },
 
   tripCard: {
-    borderRadius: 18,
-    padding: 18,
+    backgroundColor: "#1457D9",
+    borderRadius: 24,
+    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 18,
   },
 
-  brand: { fontSize: 17, fontWeight: "bold", marginBottom: 14 },
-  routeMain: { fontSize: 20, fontWeight: "bold" },
-  routeSub: { fontSize: 16, marginTop: 3 },
-  via: { fontSize: 13, marginTop: 6 },
+  busName: {
+    color: "#CFE0FF",
+    fontSize: 14,
+    fontWeight: "800",
+  },
 
-  tripRight: { alignItems: "flex-end", justifyContent: "center" },
-  time: { fontSize: 20, fontWeight: "bold" },
-  date: { fontSize: 13, marginTop: 10 },
+  route: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "900",
+    marginTop: 6,
+  },
+
+  time: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "900",
+    textAlign: "right",
+  },
+
+  date: {
+    color: "#CFE0FF",
+    fontSize: 12,
+    marginTop: 8,
+    fontWeight: "700",
+  },
 
   frontBox: {
+    backgroundColor: "#E8F1FF",
     padding: 12,
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: "center",
     marginBottom: 15,
   },
 
-  frontText: { fontWeight: "bold", fontSize: 15 },
+  frontText: {
+    color: "#667085",
+    fontWeight: "900",
+  },
 
   legend: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginBottom: 16,
+    marginBottom: 18,
   },
 
-  legendText: { fontSize: 12, fontWeight: "600" },
+  legendText: {
+    color: "#4B5B73",
+    fontSize: 13,
+    fontWeight: "800",
+  },
 
-  busBody: { alignItems: "center", paddingBottom: 20 },
+  busBody: {
+    alignItems: "center",
+    paddingBottom: 25,
+  },
 
   row: {
     flexDirection: "row",
+    marginBottom: 13,
     alignItems: "center",
-    marginBottom: 12,
   },
 
-  seatPair: { flexDirection: "row" },
+  seatPair: {
+    flexDirection: "row",
+  },
 
-  aisle: { width: 70 },
+  aisle: {
+    width: 70,
+  },
 
   lastRow: {
     flexDirection: "row",
     justifyContent: "center",
     flexWrap: "wrap",
-    marginTop: 14,
+    marginTop: 15,
   },
 
   seat: {
@@ -293,35 +327,86 @@ const styles = StyleSheet.create({
     height: 54,
     marginHorizontal: 5,
     borderRadius: 14,
+    backgroundColor: "#CFF4E4",
     borderWidth: 2.5,
+    borderColor: "#00A86B",
     alignItems: "center",
     justifyContent: "center",
   },
 
-  seatText: { fontSize: 18, fontWeight: "bold" },
+  selectedSeat: {
+    backgroundColor: "#FFD447",
+    borderColor: "#F5A400",
+  },
+
+  bookedSeat: {
+    backgroundColor: "#E8EDF4",
+    borderColor: "#CAD2DF",
+  },
+
+  seatText: {
+    color: "#008C5A",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+
+  selectedSeatText: {
+    color: "#071A2F",
+  },
+
+  bookedSeatText: {
+    color: "#B3BBC8",
+  },
 
   summaryCard: {
-    borderRadius: 16,
-    padding: 15,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 22,
+    padding: 18,
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 4,
   },
 
-  summaryLabel: { fontSize: 14, fontWeight: "bold" },
-  summarySeats: { fontSize: 15, fontWeight: "bold", marginTop: 6 },
-  total: { fontSize: 18, fontWeight: "bold" },
-  totalLabel: { textAlign: "right", marginTop: 4 },
+  summaryLabel: {
+    color: "#071A2F",
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  summarySeats: {
+    color: "#1457D9",
+    fontSize: 16,
+    fontWeight: "900",
+    marginTop: 6,
+  },
+
+  total: {
+    color: "#1457D9",
+    fontSize: 18,
+    fontWeight: "900",
+  },
+
+  totalLabel: {
+    color: "#667085",
+    textAlign: "right",
+    marginTop: 4,
+  },
 
   confirmButton: {
+    backgroundColor: "#1457D9",
     padding: 16,
-    borderRadius: 16,
+    borderRadius: 18,
     alignItems: "center",
+    marginBottom: 18,
   },
 
   confirmText: {
-    color: "#071A2F",
-    fontSize: 18,
-    fontWeight: "bold",
+    color: "#FFFFFF",
+    fontSize: 17,
+    fontWeight: "900",
   },
 });

@@ -7,12 +7,38 @@ const {
   getSeatStatus,
   bookSeat,
   getMyBookings,
+  downloadReceipt,
 } = require("../controllers/bookingController");
 
-router.get("/seats/:busId/:travelDate", getSeatStatus);
+// ================= SEAT STATUS =================
 
-router.post("/book", protect, bookSeat);
+router.get(
+  "/seats/:busId/:travelDate",
+  getSeatStatus
+);
 
-router.get("/my-bookings", protect, getMyBookings);
+// ================= BOOK SEATS =================
+
+router.post(
+  "/book",
+  protect,
+  bookSeat
+);
+
+// ================= MY BOOKINGS =================
+
+router.get(
+  "/my-bookings",
+  protect,
+  getMyBookings
+);
+
+// ================= DOWNLOAD PDF RECEIPT =================
+
+router.get(
+  "/receipt/:bookingId",
+  protect,
+  downloadReceipt
+);
 
 module.exports = router;

@@ -12,10 +12,19 @@ export default function Home() {
   return (
     <View style={styles.wrapper}>
       <ScrollView showsVerticalScrollIndicator={false}>
+        
+        {/* HEADER */}
+
         <View style={styles.header}>
-          <Text style={styles.logo}>HighwayGo <Text style={styles.logoBlue}>LK</Text></Text>
+          <Text style={styles.logo}>
+            HighwayGo{" "}
+            <Text style={styles.logoBlue}>LK</Text>
+          </Text>
+
           <Text style={styles.bell}>🔔</Text>
         </View>
+
+        {/* HERO IMAGE */}
 
         <Image
           source={require("../assets/images/index-bus.png")}
@@ -23,92 +32,220 @@ export default function Home() {
           resizeMode="cover"
         />
 
+        {/* GREETING */}
+
         <View style={styles.greetingRow}>
           <View>
-            <Text style={styles.greeting}>Hello, Passenger 👋</Text>
-            <Text style={styles.subGreeting}>Where would you like to travel today?</Text>
+            <Text style={styles.greeting}>
+              Hello, Passenger 👋
+            </Text>
+
+            <Text style={styles.subGreeting}>
+              Where would you like to travel today?
+            </Text>
           </View>
 
           <View style={styles.profileCircle}>
-            <Text style={styles.profileIcon}>👤</Text>
+            <Text style={styles.profileIcon}>
+              👤
+            </Text>
           </View>
         </View>
 
+        {/* SEARCH CARD */}
+
         <View style={styles.searchCard}>
-          <InfoRow icon="📍" label="From" value="Colombo" />
+          <InfoRow
+            icon="📍"
+            label="From"
+            value="Colombo"
+          />
+
           <View style={styles.divider} />
 
-          <InfoRow icon="📍" label="To" value="Kandy" />
+          <InfoRow
+            icon="📍"
+            label="To"
+            value="Kandy"
+          />
+
           <View style={styles.divider} />
 
           <View style={styles.grid}>
-            <InfoBox icon="📅" label="Journey Date" value="24 May 2026" />
-            <InfoBox icon="👤" label="Passengers" value="1 Passenger" />
+            <InfoBox
+              icon="📅"
+              label="Journey Date"
+              value="24 May 2026"
+            />
+
+            <InfoBox
+              icon="👤"
+              label="Passengers"
+              value="1 Passenger"
+            />
           </View>
 
           <TouchableOpacity
             style={styles.searchButton}
-            onPress={() => router.push("/buses")}
+            onPress={() =>
+              router.push("/buses")
+            }
           >
-            <Text style={styles.searchText}>🔍 Search Buses</Text>
+            <Text style={styles.searchText}>
+              🔍 Search Buses
+            </Text>
           </TouchableOpacity>
         </View>
 
+        {/* POPULAR ROUTES */}
+
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Popular Routes</Text>
-          <Text style={styles.viewAll}>View All</Text>
+          <Text style={styles.sectionTitle}>
+            Popular Routes
+          </Text>
+
+          <Text style={styles.viewAll}>
+            View All
+          </Text>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <RouteCard from="Colombo" to="Kandy" price="LKR 1,250" />
-          <RouteCard from="Colombo" to="Kurunegala" price="LKR 1,100" />
-          <RouteCard from="Kandy" to="Galle" price="LKR 1,450" />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+        >
+          <RouteCard
+            from="Colombo"
+            to="Kandy"
+            price="LKR 1,250"
+          />
+
+          <RouteCard
+            from="Colombo"
+            to="Kurunegala"
+            price="LKR 1,100"
+          />
+
+          <RouteCard
+            from="Kandy"
+            to="Galle"
+            price="LKR 1,450"
+          />
         </ScrollView>
 
-        <Text style={styles.sectionTitle}>Why Choose Us?</Text>
+        {/* FEATURES */}
+
+        <Text style={styles.sectionTitle}>
+          Why Choose Us?
+        </Text>
 
         <View style={styles.featureRow}>
-          <FeatureCard icon="🛡️" title="Secure" text="Safe booking" />
-          <FeatureCard icon="⏱️" title="Fast" text="Quick seats" />
-          <FeatureCard icon="📍" title="Tracking" text="Live GPS" />
+          <FeatureCard
+            icon="🛡️"
+            title="Secure"
+            text="Safe booking"
+          />
+
+          <FeatureCard
+            icon="⏱️"
+            title="Fast"
+            text="Quick seats"
+          />
+
+          <FeatureCard
+            icon="📍"
+            title="Tracking"
+            text="Live GPS"
+          />
         </View>
       </ScrollView>
 
+      {/* BOTTOM NAV */}
+
       <View style={styles.bottomNav}>
-        <NavItem icon="🏠" label="Home" active />
-        <NavItem icon="🎫" label="Bookings" />
-        <NavItem icon="🏷️" label="Offers" />
-        <NavItem icon="👤" label="Profile" />
+        <NavItem
+          icon="🏠"
+          label="Home"
+          active
+          onPress={() =>
+            router.push("/home")
+          }
+        />
+
+        <NavItem
+          icon="🎫"
+          label="Bookings"
+          onPress={() =>
+            router.push("/my-bookings" as any)
+          }
+        />
+
+        <NavItem
+          icon="🏷️"
+          label="Offers"
+        />
+
+        <NavItem
+          icon="👤"
+          label="Profile"
+        />
       </View>
     </View>
   );
 }
 
-function InfoRow({ icon, label, value }: any) {
+/* ================= COMPONENTS ================= */
+
+function InfoRow({
+  icon,
+  label,
+  value,
+}: any) {
   return (
     <View style={styles.infoRow}>
       <View style={styles.infoIcon}>
         <Text>{icon}</Text>
       </View>
+
       <View>
-        <Text style={styles.infoLabel}>{label}</Text>
-        <Text style={styles.infoValue}>{value}</Text>
+        <Text style={styles.infoLabel}>
+          {label}
+        </Text>
+
+        <Text style={styles.infoValue}>
+          {value}
+        </Text>
       </View>
     </View>
   );
 }
 
-function InfoBox({ icon, label, value }: any) {
+function InfoBox({
+  icon,
+  label,
+  value,
+}: any) {
   return (
     <View style={styles.infoBox}>
-      <Text style={styles.boxIcon}>{icon}</Text>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
+      <Text style={styles.boxIcon}>
+        {icon}
+      </Text>
+
+      <Text style={styles.infoLabel}>
+        {label}
+      </Text>
+
+      <Text style={styles.infoValue}>
+        {value}
+      </Text>
     </View>
   );
 }
 
-function RouteCard({ from, to, price }: any) {
+function RouteCard({
+  from,
+  to,
+  price,
+}: any) {
   return (
     <View style={styles.routeCard}>
       <Image
@@ -116,31 +253,79 @@ function RouteCard({ from, to, price }: any) {
         style={styles.routeImage}
         resizeMode="cover"
       />
-      <Text style={styles.routeTitle}>{from} → {to}</Text>
-      <Text style={styles.rating}>⭐ 4.6</Text>
-      <Text style={styles.routePrice}>From {price}</Text>
+
+      <Text style={styles.routeTitle}>
+        {from} → {to}
+      </Text>
+
+      <Text style={styles.rating}>
+        ⭐ 4.6
+      </Text>
+
+      <Text style={styles.routePrice}>
+        From {price}
+      </Text>
     </View>
   );
 }
 
-function FeatureCard({ icon, title, text }: any) {
+function FeatureCard({
+  icon,
+  title,
+  text,
+}: any) {
   return (
     <View style={styles.featureCard}>
-      <Text style={styles.featureIcon}>{icon}</Text>
-      <Text style={styles.featureTitle}>{title}</Text>
-      <Text style={styles.featureText}>{text}</Text>
+      <Text style={styles.featureIcon}>
+        {icon}
+      </Text>
+
+      <Text style={styles.featureTitle}>
+        {title}
+      </Text>
+
+      <Text style={styles.featureText}>
+        {text}
+      </Text>
     </View>
   );
 }
 
-function NavItem({ icon, label, active }: any) {
+function NavItem({
+  icon,
+  label,
+  active,
+  onPress,
+}: any) {
   return (
-    <TouchableOpacity style={styles.navItem}>
-      <Text style={active ? styles.navIconActive : styles.navIcon}>{icon}</Text>
-      <Text style={active ? styles.navTextActive : styles.navText}>{label}</Text>
+    <TouchableOpacity
+      style={styles.navItem}
+      onPress={onPress}
+    >
+      <Text
+        style={
+          active
+            ? styles.navIconActive
+            : styles.navIcon
+        }
+      >
+        {icon}
+      </Text>
+
+      <Text
+        style={
+          active
+            ? styles.navTextActive
+            : styles.navText
+        }
+      >
+        {label}
+      </Text>
     </TouchableOpacity>
   );
 }
+
+/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   wrapper: {
