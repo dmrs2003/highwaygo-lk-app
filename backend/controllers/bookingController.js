@@ -36,7 +36,6 @@ exports.getSeatStatus = async (req, res) => {
       totalSeats: bus.totalSeats,
       lastRowSeats,
       bookedSeats,
-
       price: bus.price,
       routeFrom: bus.routeFrom,
       routeTo: bus.routeTo,
@@ -60,11 +59,7 @@ exports.bookSeat = async (req, res) => {
     const { busId, seatNumbers, travelDate } = req.body;
     const userId = req.user;
 
-    if (
-      !seatNumbers ||
-      !Array.isArray(seatNumbers) ||
-      seatNumbers.length === 0
-    ) {
+    if (!seatNumbers || !Array.isArray(seatNumbers) || seatNumbers.length === 0) {
       return res.status(400).json({
         message: "Please select at least one seat",
       });
@@ -104,6 +99,7 @@ exports.bookSeat = async (req, res) => {
     const booking = await Booking.create({
       busId,
       userId,
+      ownerId: bus.ownerId,
       seatNumbers,
       travelDate,
       totalAmount,
@@ -112,10 +108,8 @@ exports.bookSeat = async (req, res) => {
 
     const user = await User.findById(userId);
 
-    let receiptPath = null;
-
     try {
-      receiptPath = generateReceipt(booking, bus, user);
+      const receiptPath = generateReceipt(booking, bus, user);
 
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -170,6 +164,25 @@ exports.getMyBookings = async (req, res) => {
       userId: req.user,
     })
       .populate("busId")
+      .sort({ createdAt: -1 });
+
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+// ================= OWNER BOOKINGS =================
+
+exports.getOwnerBookings = async (req, res) => {
+  try {
+    const bookings = await Booking.find({
+      ownerId: req.owner.id,
+    })
+      .populate("busId")
+      .populate("userId", "name email phone")
       .sort({ createdAt: -1 });
 
     res.json(bookings);

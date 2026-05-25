@@ -29,6 +29,12 @@ const bookingSchema = new mongoose.Schema(
       required: true,
     },
 
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Owner",
+      required: true,
+    },
+
     status: {
       type: String,
       default: "confirmed",

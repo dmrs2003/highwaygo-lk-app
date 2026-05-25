@@ -1,12 +1,16 @@
 const express = require("express");
 const router = express.Router();
 
-const { protect } = require("../middleware/authMiddleware");
+const {
+  protect,
+  ownerAuth,
+} = require("../middleware/authMiddleware");
 
 const {
   getSeatStatus,
   bookSeat,
   getMyBookings,
+  getOwnerBookings,
   downloadReceipt,
 } = require("../controllers/bookingController");
 
@@ -33,7 +37,15 @@ router.get(
   getMyBookings
 );
 
-// ================= DOWNLOAD PDF RECEIPT =================
+// ================= OWNER BOOKINGS =================
+
+router.get(
+  "/owner-bookings",
+  ownerAuth,
+  getOwnerBookings
+);
+
+// ================= DOWNLOAD RECEIPT =================
 
 router.get(
   "/receipt/:bookingId",
