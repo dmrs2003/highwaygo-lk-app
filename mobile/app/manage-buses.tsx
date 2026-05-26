@@ -9,6 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
 
 type Bus = {
@@ -30,13 +31,59 @@ export default function ManageBuses() {
 
   const fetchBuses = async () => {
     try {
-      const res = await API.get("/buses");
+      const token = await AsyncStorage.getItem("ownerToken");
+
+      const res = await API.get("/buses/owner/my-buses", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
       setBuses(res.data);
     } catch (error: any) {
-      Alert.alert("Error", "Failed to load buses");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to load buses"
+      );
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteBus = async (busId: string) => {
+    Alert.alert("Delete Bus", "Are you sure you want to delete this bus?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem("ownerToken");
+
+            await API.delete(`/buses/owner/${busId}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+
+            Alert.alert("Success", "Bus deleted successfully");
+            fetchBuses();
+          } catch (error: any) {
+            Alert.alert(
+              "Error",
+              error.response?.data?.message ||
+                error.response?.data?.error ||
+                "Failed to delete bus"
+            );
+          }
+        },
+      },
+    ]);
   };
 
   useEffect(() => {
@@ -69,6 +116,9 @@ export default function ManageBuses() {
           keyExtractor={(item) => item._id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 30 }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No buses added yet</Text>
+          }
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Image
@@ -102,7 +152,7 @@ export default function ManageBuses() {
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() =>
-                    Alert.alert("Coming Soon", "Edit bus feature next")
+                    router.push(`/edit-bus?busId=${item._id}`)
                   }
                 >
                   <Text style={styles.editText}>Edit</Text>
@@ -110,18 +160,14 @@ export default function ManageBuses() {
 
                 <TouchableOpacity
                   style={styles.bookingsButton}
-                  onPress={() =>
-                    Alert.alert("Coming Soon", "Owner bookings feature next")
-                  }
+                  onPress={() => router.push("/owner-bookings")}
                 >
                   <Text style={styles.bookingsText}>Bookings</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={styles.deleteButton}
-                  onPress={() =>
-                    Alert.alert("Coming Soon", "Delete bus feature next")
-                  }
+                  onPress={() => handleDeleteBus(item._id)}
                 >
                   <Text style={styles.deleteText}>Delete</Text>
                 </TouchableOpacity>
@@ -150,44 +196,43 @@ const styles = StyleSheet.create({
     paddingTop: 55,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   back: {
     fontSize: 42,
     color: "#071A2F",
     fontWeight: "900",
   },
-
   title: {
     color: "#071A2F",
     fontSize: 24,
     fontWeight: "900",
   },
-
   add: {
     color: "#1457D9",
     fontSize: 36,
     fontWeight: "900",
   },
-
   subtitle: {
     color: "#667085",
     fontSize: 15,
     marginTop: 8,
     marginBottom: 22,
   },
-
   loading: {
     textAlign: "center",
     marginTop: 40,
     color: "#667085",
   },
-
+  emptyText: {
+    textAlign: "center",
+    marginTop: 40,
+    color: "#667085",
+    fontWeight: "700",
+  },
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
@@ -198,78 +243,66 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 5,
   },
-
   image: {
     width: "100%",
     height: 175,
     borderRadius: 22,
     marginBottom: 16,
   },
-
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-
   busName: {
     color: "#071A2F",
     fontSize: 21,
     fontWeight: "900",
   },
-
   busNumber: {
     color: "#667085",
     fontSize: 13,
     fontWeight: "700",
     marginTop: 4,
   },
-
   price: {
     color: "#1457D9",
     fontSize: 18,
     fontWeight: "900",
   },
-
   routeBox: {
     backgroundColor: "#E8F1FF",
     padding: 14,
     borderRadius: 18,
     marginTop: 16,
   },
-
   route: {
     color: "#071A2F",
     fontSize: 17,
     fontWeight: "900",
     textAlign: "center",
   },
-
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 18,
   },
-
   infoLabel: {
     color: "#667085",
     fontSize: 12,
     fontWeight: "700",
   },
-
   infoValue: {
     color: "#071A2F",
     fontSize: 15,
     fontWeight: "900",
     marginTop: 5,
   },
-
   actionRow: {
     flexDirection: "row",
     gap: 10,
     marginTop: 20,
   },
-
   editButton: {
     flex: 1,
     backgroundColor: "#1457D9",
@@ -277,12 +310,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: "center",
   },
-
   editText: {
     color: "#FFFFFF",
     fontWeight: "900",
   },
-
   bookingsButton: {
     flex: 1,
     backgroundColor: "#071A2F",
@@ -290,12 +321,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: "center",
   },
-
   bookingsText: {
     color: "#FFD447",
     fontWeight: "900",
   },
-
   deleteButton: {
     flex: 1,
     backgroundColor: "#FFE8E8",
@@ -303,7 +332,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: "center",
   },
-
   deleteText: {
     color: "#E53935",
     fontWeight: "900",

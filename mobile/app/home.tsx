@@ -45,11 +45,14 @@ export default function Home() {
             </Text>
           </View>
 
-          <View style={styles.profileCircle}>
+          <TouchableOpacity
+            style={styles.profileCircle}
+            onPress={() => router.push("/profile")}
+          >
             <Text style={styles.profileIcon}>
               👤
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* SEARCH CARD */}
@@ -187,6 +190,9 @@ export default function Home() {
         <NavItem
           icon="👤"
           label="Profile"
+          onPress={() =>
+            router.push("/profile")
+          }
         />
       </View>
     </View>
