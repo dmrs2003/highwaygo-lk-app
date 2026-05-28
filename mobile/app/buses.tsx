@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  TextInput,
 } from "react-native";
 import { router } from "expo-router";
 import API from "../services/api";
+import PremiumLoader from "../components/PremiumLoader";
 
 type Bus = {
   _id: string;
@@ -27,13 +29,21 @@ type Bus = {
 export default function Buses() {
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [sortType, setSortType] = useState<"default" | "low" | "high">(
+    "default"
+  );
 
   const fetchBuses = async () => {
     try {
+      setLoading(true);
       const res = await API.get("/buses");
       setBuses(res.data);
     } catch (error: any) {
-      Alert.alert("Error", error.response?.data?.message || "Failed to load buses");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to load buses"
+      );
     } finally {
       setLoading(false);
     }
@@ -42,6 +52,23 @@ export default function Buses() {
   useEffect(() => {
     fetchBuses();
   }, []);
+
+  const filteredBuses = useMemo(() => {
+    let result = buses.filter((bus) => {
+      const text = `${bus.busName} ${bus.busNumber} ${bus.routeFrom} ${bus.routeTo}`.toLowerCase();
+      return text.includes(search.toLowerCase());
+    });
+
+    if (sortType === "low") {
+      result = [...result].sort((a, b) => a.price - b.price);
+    }
+
+    if (sortType === "high") {
+      result = [...result].sort((a, b) => b.price - a.price);
+    }
+
+    return result;
+  }, [buses, search, sortType]);
 
   return (
     <View style={styles.container}>
@@ -52,98 +79,154 @@ export default function Buses() {
 
         <Text style={styles.title}>Available Buses</Text>
 
-        <Text style={styles.filter}>🔎</Text>
+        <TouchableOpacity onPress={fetchBuses}>
+          <Text style={styles.filter}>↻</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.routeBox}>
-        <View>
-          <Text style={styles.routeCity}>Colombo</Text>
-          <Text style={styles.routeSmall}>Western Province</Text>
-        </View>
+      <View style={styles.searchBox}>
+        <Text style={styles.searchIcon}>🔍</Text>
 
-        <Text style={styles.arrow}>→</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search route, bus name, number..."
+          placeholderTextColor="#8A98AA"
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
 
-        <View>
-          <Text style={styles.routeCity}>Kandy</Text>
-          <Text style={styles.routeSmall}>Central Province</Text>
-        </View>
+      <View style={styles.filterRow}>
+        <FilterChip
+          label="Default"
+          active={sortType === "default"}
+          onPress={() => setSortType("default")}
+        />
+
+        <FilterChip
+          label="Low Price"
+          active={sortType === "low"}
+          onPress={() => setSortType("low")}
+        />
+
+        <FilterChip
+          label="High Price"
+          active={sortType === "high"}
+          onPress={() => setSortType("high")}
+        />
       </View>
 
       <Text style={styles.countText}>
-        {loading ? "Loading..." : `${buses.length} Buses Found`}
+        {loading ? "Loading..." : `${filteredBuses.length} Buses Found`}
       </Text>
 
-      <FlatList
-        data={buses}
-        keyExtractor={(item) => item._id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 110 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={styles.topRow}>
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={styles.busImage}
-                resizeMode="cover"
-              />
+      {loading ? (
+        <PremiumLoader />
+      ) : (
+        <FlatList
+          data={filteredBuses}
+          keyExtractor={(item) => item._id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 110 }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No buses found</Text>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.card}>
+              <View style={styles.topRow}>
+                <Image
+                  source={{ uri: item.imageUrl }}
+                  style={styles.busImage}
+                  resizeMode="cover"
+                />
 
-              <View style={styles.busInfo}>
-                <View style={styles.nameRow}>
-                  <Text style={styles.busName}>{item.busName}</Text>
-                  <View style={styles.ratingBadge}>
-                    <Text style={styles.ratingText}>⭐ 4.6</Text>
-                  </View>
-                </View>
+                <View style={styles.busInfo}>
+                  <View style={styles.nameRow}>
+                    <Text style={styles.busName}>{item.busName}</Text>
 
-                <Text style={styles.busType}>
-                  AC Seater • {item.totalSeats} Seats
-                </Text>
-
-                <View style={styles.timeRow}>
-                  <View>
-                    <Text style={styles.time}>{item.departureTime}</Text>
-                    <Text style={styles.place}>{item.routeFrom}</Text>
+                    <View style={styles.ratingBadge}>
+                      <Text style={styles.ratingText}>⭐ 4.6</Text>
+                    </View>
                   </View>
 
-                  <View style={styles.lineBox}>
-                    <Text style={styles.duration}>3h 30m</Text>
-                    <View style={styles.line} />
-                  </View>
+                  <Text style={styles.busType}>
+                    AC Seater • {item.totalSeats} Seats
+                  </Text>
 
-                  <View>
-                    <Text style={styles.time}>{item.arrivalTime || "N/A"}</Text>
-                    <Text style={styles.place}>{item.routeTo}</Text>
+                  <View style={styles.timeRow}>
+                    <View>
+                      <Text style={styles.time}>{item.departureTime}</Text>
+                      <Text style={styles.place}>{item.routeFrom}</Text>
+                    </View>
+
+                    <View style={styles.lineBox}>
+                      <Text style={styles.duration}>Express</Text>
+                      <View style={styles.line} />
+                    </View>
+
+                    <View>
+                      <Text style={styles.time}>
+                        {item.arrivalTime || "N/A"}
+                      </Text>
+                      <Text style={styles.place}>{item.routeTo}</Text>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
 
-            <View style={styles.bottomInfo}>
-              <View>
-                <Text style={styles.amenityTitle}>Amenities</Text>
-                <Text style={styles.amenities}>❄️  💺  📶  🔌  🖥️</Text>
+              <View style={styles.bottomInfo}>
+                <View>
+                  <Text style={styles.amenityTitle}>Amenities</Text>
+                  <Text style={styles.amenities}>❄️  💺  📶  🔌</Text>
+                </View>
+
+                <Text style={styles.price}>LKR {item.price}</Text>
               </View>
 
-              <Text style={styles.price}>LKR {item.price}</Text>
+              <TouchableOpacity
+                style={styles.selectButton}
+                onPress={() =>
+                  router.push(`/seat-selection?busId=${item._id}`)
+                }
+              >
+                <Text style={styles.selectText}>Select Seats</Text>
+              </TouchableOpacity>
             </View>
-
-            <TouchableOpacity
-              style={styles.selectButton}
-              onPress={() => router.push(`/seat-selection?busId=${item._id}`)}
-            >
-              <Text style={styles.selectText}>Select Seats</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      />
+          )}
+        />
+      )}
 
       <View style={styles.bottomNav}>
         <NavItem icon="🏠" label="Home" onPress={() => router.push("/home")} />
-        <NavItem icon="🎫" label="Bookings" />
+
+        <NavItem
+          icon="🎫"
+          label="Bookings"
+          onPress={() => router.push("/my-bookings" as any)}
+        />
+
         <NavItem icon="🏷️" label="Offers" />
-        <NavItem icon="👤" label="Profile" />
+
+        <NavItem
+          icon="👤"
+          label="Profile"
+          onPress={() => router.push("/profile")}
+        />
       </View>
     </View>
+  );
+}
+
+function FilterChip({ label, active, onPress }: any) {
+  return (
+    <TouchableOpacity
+      style={[styles.chip, active && styles.activeChip]}
+      onPress={onPress}
+    >
+      <Text style={[styles.chipText, active && styles.activeChipText]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
   );
 }
 
@@ -184,35 +267,65 @@ const styles = StyleSheet.create({
   },
 
   filter: {
-    fontSize: 22,
+    fontSize: 26,
+    color: "#1457D9",
+    fontWeight: "900",
   },
 
-  routeBox: {
-    backgroundColor: "#1457D9",
-    borderRadius: 22,
-    padding: 20,
+  searchBox: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    height: 56,
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 3,
   },
 
-  routeCity: {
-    color: "#FFFFFF",
-    fontSize: 20,
+  searchIcon: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: "#071A2F",
+    fontWeight: "700",
+  },
+
+  filterRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 16,
+  },
+
+  chip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#D8E2F0",
+  },
+
+  activeChip: {
+    backgroundColor: "#1457D9",
+    borderColor: "#1457D9",
+  },
+
+  chipText: {
+    color: "#667085",
+    fontSize: 13,
     fontWeight: "900",
   },
 
-  routeSmall: {
-    color: "#CFE0FF",
-    fontSize: 12,
-    marginTop: 4,
-  },
-
-  arrow: {
+  activeChipText: {
     color: "#FFFFFF",
-    fontSize: 30,
-    fontWeight: "900",
   },
 
   countText: {
@@ -220,6 +333,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "900",
     marginBottom: 14,
+  },
+
+  emptyText: {
+    textAlign: "center",
+    marginTop: 40,
+    color: "#667085",
+    fontWeight: "800",
   },
 
   card: {
@@ -242,6 +362,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 18,
     marginRight: 14,
+    backgroundColor: "#E8F1FF",
   },
 
   busInfo: {
@@ -378,6 +499,7 @@ const styles = StyleSheet.create({
 
   navIcon: {
     fontSize: 22,
+    opacity: 0.75,
   },
 
   navText: {

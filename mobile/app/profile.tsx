@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -11,17 +11,6 @@ import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function Profile() {
-  const [token, setToken] = useState("");
-
-  useEffect(() => {
-    const loadToken = async () => {
-      const savedToken = await AsyncStorage.getItem("token");
-      setToken(savedToken || "");
-    };
-
-    loadToken();
-  }, []);
-
   const handleLogout = async () => {
     Alert.alert("Logout", "Are you sure you want to logout?", [
       { text: "Cancel", style: "cancel" },
@@ -63,7 +52,7 @@ export default function Profile() {
           icon="🎫"
           title="My Bookings"
           subtitle="View tickets and receipts"
-          onPress={() => router.push("/my-bookings")}
+          onPress={() => router.push("/my-bookings" as any)}
         />
 
         <MenuItem
@@ -81,11 +70,7 @@ export default function Profile() {
 
         <Text style={styles.sectionTitle}>Preferences</Text>
 
-        <MenuItem
-          icon="🌙"
-          title="Theme"
-          subtitle="Light mode enabled"
-        />
+        <MenuItem icon="🌙" title="Theme" subtitle="Light mode enabled" />
 
         <MenuItem
           icon="🔔"
@@ -95,11 +80,7 @@ export default function Profile() {
 
         <Text style={styles.sectionTitle}>Support</Text>
 
-        <MenuItem
-          icon="❓"
-          title="Help Center"
-          subtitle="Get support and FAQs"
-        />
+        <MenuItem icon="❓" title="Help Center" subtitle="Get support and FAQs" />
 
         <MenuItem
           icon="ℹ️"
@@ -116,12 +97,15 @@ export default function Profile() {
 
       <View style={styles.bottomNav}>
         <NavItem icon="🏠" label="Home" onPress={() => router.push("/home")} />
+
         <NavItem
           icon="🎫"
           label="Bookings"
-          onPress={() => router.push("/my-bookings")}
+          onPress={() => router.push("/my-bookings" as any)}
         />
+
         <NavItem icon="🏷️" label="Offers" />
+
         <NavItem icon="👤" label="Profile" active />
       </View>
     </View>
@@ -149,9 +133,7 @@ function NavItem({ icon, label, active, onPress }: any) {
   return (
     <TouchableOpacity style={styles.navItem} onPress={onPress}>
       <Text style={active ? styles.navIconActive : styles.navIcon}>{icon}</Text>
-      <Text style={active ? styles.navTextActive : styles.navText}>
-        {label}
-      </Text>
+      <Text style={active ? styles.navTextActive : styles.navText}>{label}</Text>
     </TouchableOpacity>
   );
 }
