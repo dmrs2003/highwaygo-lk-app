@@ -1,3 +1,6 @@
+import { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import API from "../services/api";
 import { router } from "expo-router";
 import {
   View,
@@ -7,6 +10,8 @@ import {
   Image,
   ScrollView,
 } from "react-native";
+
+const [user, setUser] = useState<any>(null);
 
 export default function Home() {
   return (
@@ -37,13 +42,13 @@ export default function Home() {
         <View style={styles.greetingRow}>
           <View>
             <Text style={styles.greeting}>
-              Hello, Passenger 👋
+              Hello, {user?.name || "Passenger"} 👋
             </Text>
 
             <Text style={styles.subGreeting}>
               Where would you like to travel today?
             </Text>
-          </View>
+        </View>
 
           <TouchableOpacity
             style={styles.profileCircle}
@@ -57,83 +62,55 @@ export default function Home() {
 
         {/* SEARCH CARD */}
 
-        <View style={styles.searchCard}>
-          <InfoRow
-            icon="📍"
-            label="From"
-            value="Colombo"
-          />
+      <View style={styles.searchCard}>
+          <TouchableOpacity>
+            <InfoRow
+              icon="📍"
+              label="From"
+              value="Select Departure"
+            />
+          </TouchableOpacity>
 
-          <View style={styles.divider} />
+      <View style={styles.divider} />
 
+        <TouchableOpacity>
           <InfoRow
             icon="📍"
             label="To"
-            value="Kandy"
+            value="Select Destination"
           />
+        </TouchableOpacity>
 
-          <View style={styles.divider} />
+      <View style={styles.divider} />
 
-          <View style={styles.grid}>
-            <InfoBox
-              icon="📅"
-              label="Journey Date"
-              value="24 May 2026"
-            />
-
-            <InfoBox
-              icon="👤"
-              label="Passengers"
-              value="1 Passenger"
-            />
-          </View>
-
-          <TouchableOpacity
-            style={styles.searchButton}
-            onPress={() =>
-              router.push("/buses")
-            }
-          >
-            <Text style={styles.searchText}>
-              🔍 Search Buses
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* POPULAR ROUTES */}
-
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            Popular Routes
-          </Text>
-
-          <Text style={styles.viewAll}>
-            View All
-          </Text>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
-          <RouteCard
-            from="Colombo"
-            to="Kandy"
-            price="LKR 1,250"
+        <View style={styles.grid}>
+          <TouchableOpacity style={{ flex: 1 }}>
+          <InfoBox
+            icon="📅"
+            label="Journey Date"
+            value={new Date().toDateString()}
           />
+        </TouchableOpacity>
 
-          <RouteCard
-            from="Colombo"
-            to="Kurunegala"
-            price="LKR 1,100"
-          />
+      <TouchableOpacity style={{ flex: 1 }}>
+        <InfoBox
+          icon="👤"
+          label="Passengers"
+          value="1 Passenger"
+        />
+      </TouchableOpacity>
+      </View>
 
-          <RouteCard
-            from="Kandy"
-            to="Galle"
-            price="LKR 1,450"
-          />
-        </ScrollView>
+      <TouchableOpacity
+        style={styles.searchButton}
+        onPress={() => router.push("/buses")}
+      >
+      <Text style={styles.searchText}>
+        🔍 Search Buses
+      </Text>
+    </TouchableOpacity>
+  </View>
+
 
         {/* FEATURES */}
 

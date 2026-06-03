@@ -1,62 +1,69 @@
 const mongoose = require("mongoose");
 
-const busSchema = new mongoose.Schema(
-  {
-    busName: {
-      type: String,
-      required: true,
-    },
+const busSchema = new mongoose.Schema({
+  busName: { type: String, required: true },
 
-    busNumber: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+  busNumber: {
+    type: String,
+    required: true,
+    unique: true,
+  },
 
-    routeFrom: {
-      type: String,
-      required: true,
-    },
+  routeFrom: {
+    type: String,
+    required: true,
+  },
 
-    routeTo: {
-      type: String,
-      required: true,
-    },
+  routeTo: {
+    type: String,
+    required: true,
+  },
 
-    departureTime: {
-      type: String,
-      required: true,
-    },
+  departureTime: {
+    type: String,
+    required: true,
+  },
 
-    arrivalTime: {
-      type: String,
-    },
+  arrivalTime: {
+    type: String,
+  },
 
-    price: {
+  price: {
+    type: Number,
+    required: true,
+  },
+
+  totalSeats: {
+    type: Number,
+    required: true,
+  },
+
+  imageUrl: {
+    type: String,
+    required: true,
+  },
+
+  ownerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Owner",
+  },
+
+  currentLocation: {
+    latitude: {
       type: Number,
-      required: true,
+      default: 6.9271,
     },
 
-    totalSeats: {
+    longitude: {
       type: Number,
-      required: true,
+      default: 79.8612,
     },
 
-    imageUrl: {
-      type: String,
-      required: true,
-    },
-
-    // OWNER ID
-    ownerId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Owner",
-      required: true,
+    updatedAt: {
+      type: Date,
+      default: Date.now,
     },
   },
-  {
-    timestamps: true,
-  }
-);
+});
 
 module.exports = mongoose.model("Bus", busSchema);
