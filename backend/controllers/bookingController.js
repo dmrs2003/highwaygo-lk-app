@@ -59,7 +59,11 @@ exports.bookSeat = async (req, res) => {
     const { busId, seatNumbers, travelDate } = req.body;
     const userId = req.user;
 
-    if (!seatNumbers || !Array.isArray(seatNumbers) || seatNumbers.length === 0) {
+    if (
+      !seatNumbers ||
+      !Array.isArray(seatNumbers) ||
+      seatNumbers.length === 0
+    ) {
       return res.status(400).json({
         message: "Please select at least one seat",
       });
@@ -109,7 +113,11 @@ exports.bookSeat = async (req, res) => {
     const user = await User.findById(userId);
 
     try {
-      const receiptPath = generateReceipt(booking, bus, user);
+      const receiptPath = generateReceipt(
+        booking,
+        bus,
+        user
+      );
 
       const transporter = nodemailer.createTransport({
         service: "gmail",
@@ -132,7 +140,10 @@ exports.bookSeat = async (req, res) => {
         ],
       });
     } catch (emailError) {
-      console.log("Receipt email failed:", emailError.message);
+      console.log(
+        "Receipt email failed:",
+        emailError.message
+      );
     }
 
     res.status(201).json({
@@ -186,6 +197,48 @@ exports.getOwnerBookings = async (req, res) => {
       .sort({ createdAt: -1 });
 
     res.json(bookings);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
+
+// ================= TRACK BOOKED BUS LOCATION =================
+
+exports.trackBookedBus = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+
+    const booking = await Booking.findOne({
+      _id: bookingId,
+      userId: req.user,
+      status: "confirmed",
+    }).populate("busId");
+
+    if (!booking) {
+      return res.status(404).json({
+        message: "Booking not found or not authorized",
+      });
+    }
+
+    if (!booking.busId) {
+      return res.status(404).json({
+        message: "Bus not found",
+      });
+    }
+
+    res.json({
+      bookingId: booking._id,
+      busId: booking.busId._id,
+      busName: booking.busId.busName,
+      busNumber: booking.busId.busNumber,
+      routeFrom: booking.busId.routeFrom,
+      routeTo: booking.busId.routeTo,
+      departureTime: booking.busId.departureTime,
+      travelDate: booking.travelDate,
+      currentLocation: booking.busId.currentLocation,
+    });
   } catch (error) {
     res.status(500).json({
       error: error.message,

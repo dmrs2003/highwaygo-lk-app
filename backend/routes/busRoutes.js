@@ -12,24 +12,69 @@ const {
   getBusById,
   updateBus,
   deleteBus,
+  updateBusLocation,
+  getBusLocation,
 } = require("../controllers/busController");
 
-// everyone can view buses
+// ================= PUBLIC BUSES =================
+
 router.get("/", getBuses);
 
-// owner buses
-router.get("/owner/my-buses", ownerAuth, getOwnerBuses);
+// ================= OWNER BUSES =================
 
-// owner single bus
-router.get("/owner/:id", ownerAuth, getBusById);
+router.get(
+  "/owner/my-buses",
+  ownerAuth,
+  getOwnerBuses
+);
 
-// owner add bus
-router.post("/add", ownerAuth, addBus);
+// ================= OWNER SINGLE BUS =================
 
-// owner update bus
-router.put("/owner/:id", ownerAuth, updateBus);
+router.get(
+  "/owner/:id",
+  ownerAuth,
+  getBusById
+);
 
-// owner delete bus
-router.delete("/owner/:id", ownerAuth, deleteBus);
+// ================= ADD BUS =================
+
+router.post(
+  "/add",
+  ownerAuth,
+  addBus
+);
+
+// ================= UPDATE BUS =================
+
+router.put(
+  "/owner/:id",
+  ownerAuth,
+  updateBus
+);
+
+// ================= DELETE BUS =================
+
+router.delete(
+  "/owner/:id",
+  ownerAuth,
+  deleteBus
+);
+
+// ================= UPDATE LIVE LOCATION =================
+// owner/driver updates bus location
+
+router.put(
+  "/location/:busId",
+  ownerAuth,
+  updateBusLocation
+);
+
+// ================= GET LIVE LOCATION =================
+// public location get endpoint
+
+router.get(
+  "/location/:busId",
+  getBusLocation
+);
 
 module.exports = router;

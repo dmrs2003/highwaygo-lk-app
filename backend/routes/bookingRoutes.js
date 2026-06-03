@@ -11,6 +11,7 @@ const {
   bookSeat,
   getMyBookings,
   getOwnerBookings,
+  trackBookedBus,
   downloadReceipt,
 } = require("../controllers/bookingController");
 
@@ -43,6 +44,15 @@ router.get(
   "/owner-bookings",
   ownerAuth,
   getOwnerBookings
+);
+
+// ================= TRACK BOOKED BUS =================
+// passenger can track only own booked bus
+
+router.get(
+  "/track/:bookingId",
+  protect,
+  trackBookedBus
 );
 
 // ================= DOWNLOAD RECEIPT =================
