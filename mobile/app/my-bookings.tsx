@@ -9,6 +9,7 @@ import {
   Image,
   Linking,
 } from "react-native";
+import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
 
@@ -19,6 +20,7 @@ type Booking = {
   totalAmount: number;
   status: string;
   busId: {
+    _id: string;
     busName: string;
     busNumber: string;
     routeFrom: string;
@@ -56,10 +58,7 @@ export default function MyBookings() {
 
   const downloadReceipt = async (bookingId: string) => {
     try {
-      const token = await AsyncStorage.getItem("token");
-
       const receiptUrl = `${API.defaults.baseURL}/bookings/receipt/${bookingId}`;
-
       await Linking.openURL(receiptUrl);
     } catch (error: any) {
       Alert.alert("Error", "Failed to open receipt");
@@ -75,7 +74,7 @@ export default function MyBookings() {
       <Text style={styles.title}>My Bookings 🎫</Text>
 
       <Text style={styles.subtitle}>
-        View your confirmed tickets and download receipts.
+        View your confirmed tickets, receipts and live bus tracking.
       </Text>
 
       {loading ? (
@@ -86,6 +85,9 @@ export default function MyBookings() {
           keyExtractor={(item) => item._id}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 30 }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>No bookings found</Text>
+          }
           renderItem={({ item }) => (
             <View style={styles.card}>
               {item.busId?.imageUrl && (
@@ -128,6 +130,15 @@ export default function MyBookings() {
                 <Text style={styles.qrText}>▦ ▦ ▦ ▦</Text>
                 <Text style={styles.qrSub}>Ticket ID: {item._id.slice(-8)}</Text>
               </View>
+
+              <TouchableOpacity
+                style={styles.trackButton}
+                onPress={() =>
+                  router.push(`/live-track?bookingId=${item._id}` as any)
+                }
+              >
+                <Text style={styles.trackText}>📍 Live Track Bus</Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.downloadButton}
@@ -178,6 +189,14 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 40,
     fontSize: 16,
+  },
+
+  emptyText: {
+    color: "#667085",
+    textAlign: "center",
+    marginTop: 40,
+    fontSize: 16,
+    fontWeight: "800",
   },
 
   card: {
@@ -295,6 +314,20 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 13,
     fontWeight: "700",
+  },
+
+  trackButton: {
+    backgroundColor: "#071A2F",
+    padding: 15,
+    borderRadius: 18,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+
+  trackText: {
+    color: "#FFD447",
+    fontSize: 16,
+    fontWeight: "900",
   },
 
   downloadButton: {

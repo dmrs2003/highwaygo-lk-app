@@ -105,7 +105,7 @@ export default function ManageBuses() {
       </View>
 
       <Text style={styles.subtitle}>
-        View, edit and manage your bus schedules
+        View, edit, track and manage your bus schedules
       </Text>
 
       {loading ? (
@@ -152,17 +152,19 @@ export default function ManageBuses() {
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() =>
-                    router.push(`/edit-bus?busId=${item._id}`)
+                    router.push(`/edit-bus?busId=${item._id}` as any)
                   }
                 >
                   <Text style={styles.editText}>Edit</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={styles.bookingsButton}
-                  onPress={() => router.push("/owner-bookings")}
+                  style={styles.locationButton}
+                  onPress={() =>
+                    router.push(`/driver-location?busId=${item._id}` as any)
+                  }
                 >
-                  <Text style={styles.bookingsText}>Bookings</Text>
+                  <Text style={styles.locationText}>Location</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -196,43 +198,51 @@ const styles = StyleSheet.create({
     paddingTop: 55,
     paddingHorizontal: 20,
   },
+
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
+
   back: {
     fontSize: 42,
     color: "#071A2F",
     fontWeight: "900",
   },
+
   title: {
     color: "#071A2F",
     fontSize: 24,
     fontWeight: "900",
   },
+
   add: {
     color: "#1457D9",
     fontSize: 36,
     fontWeight: "900",
   },
+
   subtitle: {
     color: "#667085",
     fontSize: 15,
     marginTop: 8,
     marginBottom: 22,
   },
+
   loading: {
     textAlign: "center",
     marginTop: 40,
     color: "#667085",
   },
+
   emptyText: {
     textAlign: "center",
     marginTop: 40,
     color: "#667085",
     fontWeight: "700",
   },
+
   card: {
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
@@ -243,66 +253,78 @@ const styles = StyleSheet.create({
     shadowRadius: 18,
     elevation: 5,
   },
+
   image: {
     width: "100%",
     height: 175,
     borderRadius: 22,
     marginBottom: 16,
   },
+
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
+
   busName: {
     color: "#071A2F",
     fontSize: 21,
     fontWeight: "900",
   },
+
   busNumber: {
     color: "#667085",
     fontSize: 13,
     fontWeight: "700",
     marginTop: 4,
   },
+
   price: {
     color: "#1457D9",
     fontSize: 18,
     fontWeight: "900",
   },
+
   routeBox: {
     backgroundColor: "#E8F1FF",
     padding: 14,
     borderRadius: 18,
     marginTop: 16,
   },
+
   route: {
     color: "#071A2F",
     fontSize: 17,
     fontWeight: "900",
     textAlign: "center",
   },
+
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginTop: 18,
   },
+
   infoLabel: {
     color: "#667085",
     fontSize: 12,
     fontWeight: "700",
   },
+
   infoValue: {
     color: "#071A2F",
     fontSize: 15,
     fontWeight: "900",
     marginTop: 5,
   },
+
   actionRow: {
     flexDirection: "row",
     gap: 10,
     marginTop: 20,
   },
+
   editButton: {
     flex: 1,
     backgroundColor: "#1457D9",
@@ -310,21 +332,25 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: "center",
   },
+
   editText: {
     color: "#FFFFFF",
     fontWeight: "900",
   },
-  bookingsButton: {
+
+  locationButton: {
     flex: 1,
     backgroundColor: "#071A2F",
     padding: 13,
     borderRadius: 15,
     alignItems: "center",
   },
-  bookingsText: {
+
+  locationText: {
     color: "#FFD447",
     fontWeight: "900",
   },
+
   deleteButton: {
     flex: 1,
     backgroundColor: "#FFE8E8",
@@ -332,6 +358,7 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     alignItems: "center",
   },
+
   deleteText: {
     color: "#E53935",
     fontWeight: "900",
