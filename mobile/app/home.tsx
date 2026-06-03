@@ -11,9 +11,10 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  TextInput,
   Platform,
   Alert,
+  Modal,
+  FlatList,
 } from "react-native";
 
 export default function Home() {
@@ -25,8 +26,13 @@ export default function Home() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [passengers, setPassengers] = useState(1);
 
+  const [buses, setBuses] = useState<any[]>([]);
+  const [routeModal, setRouteModal] = useState(false);
+  const [selectType, setSelectType] = useState<"from" | "to">("from");
+
   useEffect(() => {
     loadUser();
+    loadRoutes();
   }, []);
 
   const loadUser = async () => {
@@ -47,9 +53,36 @@ export default function Home() {
     }
   };
 
+  const loadRoutes = async () => {
+    try {
+      const res = await API.get("/buses");
+      setBuses(res.data);
+    } catch (error) {
+      console.log("ROUTES LOAD ERROR:", error);
+    }
+  };
+
+  const departureList = [
+    ...new Set(
+      buses
+        .filter((bus) => (to ? bus.routeTo === to : true))
+        .map((bus) => bus.routeFrom)
+        .filter((item) => item !== to)
+    ),
+  ];
+
+  const destinationList = [
+    ...new Set(
+      buses
+        .filter((bus) => (from ? bus.routeFrom === from : true))
+        .map((bus) => bus.routeTo)
+        .filter((item) => item !== from)
+    ),
+  ];
+
   const handleSearch = () => {
-    if (!from.trim() || !to.trim()) {
-      Alert.alert("Error", "Please enter departure and destination");
+    if (!from || !to) {
+      Alert.alert("Error", "Please select departure and destination");
       return;
     }
 
@@ -58,6 +91,24 @@ export default function Home() {
         journeyDate.toISOString().split("T")[0]
       }&passengers=${passengers}` as any
     );
+  };
+
+  const handleSelectRoute = (item: string) => {
+    if (selectType === "from") {
+      setFrom(item);
+
+      if (to === item) {
+        setTo("");
+      }
+    } else {
+      setTo(item);
+
+      if (from === item) {
+        setFrom("");
+      }
+    }
+
+    setRouteModal(false);
   };
 
   return (
@@ -97,41 +148,45 @@ export default function Home() {
         </View>
 
         <View style={styles.searchCard}>
-          <View style={styles.inputRow}>
+          <TouchableOpacity
+            style={styles.inputRow}
+            onPress={() => {
+              setSelectType("from");
+              setRouteModal(true);
+            }}
+          >
             <View style={styles.infoIcon}>
               <Text>📍</Text>
             </View>
 
             <View style={{ flex: 1 }}>
               <Text style={styles.infoLabel}>From</Text>
-              <TextInput
-                style={styles.locationInput}
-                placeholder="Enter departure"
-                placeholderTextColor="#8A98AA"
-                value={from}
-                onChangeText={setFrom}
-              />
+              <Text style={styles.locationText}>
+                {from || "Select Departure"}
+              </Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.divider} />
 
-          <View style={styles.inputRow}>
+          <TouchableOpacity
+            style={styles.inputRow}
+            onPress={() => {
+              setSelectType("to");
+              setRouteModal(true);
+            }}
+          >
             <View style={styles.infoIcon}>
               <Text>📍</Text>
             </View>
 
             <View style={{ flex: 1 }}>
               <Text style={styles.infoLabel}>To</Text>
-              <TextInput
-                style={styles.locationInput}
-                placeholder="Enter destination"
-                placeholderTextColor="#8A98AA"
-                value={to}
-                onChangeText={setTo}
-              />
+              <Text style={styles.locationText}>
+                {to || "Select Destination"}
+              </Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.divider} />
 
@@ -154,7 +209,9 @@ export default function Home() {
               <View style={styles.counterRow}>
                 <TouchableOpacity
                   style={styles.counterBtn}
-                  onPress={() => setPassengers(Math.max(1, passengers - 1))}
+                  onPress={() =>
+                    setPassengers(Math.max(1, passengers - 1))
+                  }
                 >
                   <Text style={styles.counterText}>−</Text>
                 </TouchableOpacity>
@@ -177,6 +234,9 @@ export default function Home() {
               mode="date"
               display={Platform.OS === "ios" ? "spinner" : "default"}
               minimumDate={new Date()}
+              themeVariant="light"
+              textColor="#071A2F"
+              accentColor="#1457D9"
               onChange={(event, selectedDate) => {
                 setShowDatePicker(false);
 
@@ -223,6 +283,41 @@ export default function Home() {
           onPress={() => router.push("/profile")}
         />
       </View>
+
+      <Modal visible={routeModal} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>
+              Select {selectType === "from" ? "Departure" : "Destination"}
+            </Text>
+
+            <FlatList
+              data={selectType === "from" ? departureList : destinationList}
+              keyExtractor={(item) => item}
+              ListEmptyComponent={
+                <Text style={styles.emptyRoute}>
+                  No routes available
+                </Text>
+              }
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.routeItem}
+                  onPress={() => handleSelectRoute(item)}
+                >
+                  <Text style={styles.routeItemText}>{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setRouteModal(false)}
+            >
+              <Text style={styles.closeText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -350,19 +445,18 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
+  locationText: {
+    color: "#071A2F",
+    fontSize: 18,
+    fontWeight: "900",
+    marginTop: 4,
+  },
+
   infoValue: {
     color: "#071A2F",
     fontSize: 15,
     fontWeight: "900",
     marginTop: 3,
-  },
-
-  locationInput: {
-    color: "#071A2F",
-    fontSize: 18,
-    fontWeight: "900",
-    marginTop: 4,
-    paddingVertical: 2,
   },
 
   divider: {
@@ -513,6 +607,61 @@ const styles = StyleSheet.create({
     color: "#1457D9",
     fontSize: 12,
     marginTop: 4,
+    fontWeight: "900",
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+
+  modalCard: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+    maxHeight: "65%",
+  },
+
+  modalTitle: {
+    color: "#071A2F",
+    fontSize: 22,
+    fontWeight: "900",
+    marginBottom: 18,
+  },
+
+  routeItem: {
+    backgroundColor: "#F4F8FF",
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 12,
+  },
+
+  routeItemText: {
+    color: "#071A2F",
+    fontSize: 17,
+    fontWeight: "900",
+  },
+
+  emptyRoute: {
+    color: "#667085",
+    textAlign: "center",
+    marginVertical: 25,
+    fontWeight: "800",
+  },
+
+  closeButton: {
+    backgroundColor: "#1457D9",
+    padding: 15,
+    borderRadius: 18,
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  closeText: {
+    color: "#FFFFFF",
+    fontSize: 16,
     fontWeight: "900",
   },
 });
