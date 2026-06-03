@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import API from "../services/api";
 import { router } from "expo-router";
+import API from "../services/api";
+
 import {
   View,
   Text,
@@ -9,27 +11,65 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  TextInput,
+  Platform,
+  Alert,
 } from "react-native";
 
-const [user, setUser] = useState<any>(null);
-
 export default function Home() {
+  const [user, setUser] = useState<any>(null);
+
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [journeyDate, setJourneyDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [passengers, setPassengers] = useState(1);
+
+  useEffect(() => {
+    loadUser();
+  }, []);
+
+  const loadUser = async () => {
+    try {
+      const token = await AsyncStorage.getItem("token");
+
+      if (!token) return;
+
+      const res = await API.get("/auth/me", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setUser(res.data);
+    } catch (error) {
+      console.log("USER LOAD ERROR:", error);
+    }
+  };
+
+  const handleSearch = () => {
+    if (!from.trim() || !to.trim()) {
+      Alert.alert("Error", "Please enter departure and destination");
+      return;
+    }
+
+    router.push(
+      `/buses?from=${from}&to=${to}&date=${
+        journeyDate.toISOString().split("T")[0]
+      }&passengers=${passengers}` as any
+    );
+  };
+
   return (
     <View style={styles.wrapper}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        
-        {/* HEADER */}
-
         <View style={styles.header}>
           <Text style={styles.logo}>
-            HighwayGo{" "}
-            <Text style={styles.logoBlue}>LK</Text>
+            HighwayGo <Text style={styles.logoBlue}>LK</Text>
           </Text>
 
           <Text style={styles.bell}>🔔</Text>
         </View>
-
-        {/* HERO IMAGE */}
 
         <Image
           source={require("../assets/images/index-bus.png")}
@@ -37,10 +77,8 @@ export default function Home() {
           resizeMode="cover"
         />
 
-        {/* GREETING */}
-
         <View style={styles.greetingRow}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>
               Hello, {user?.name || "Passenger"} 👋
             </Text>
@@ -48,267 +86,170 @@ export default function Home() {
             <Text style={styles.subGreeting}>
               Where would you like to travel today?
             </Text>
-        </View>
+          </View>
 
           <TouchableOpacity
             style={styles.profileCircle}
             onPress={() => router.push("/profile")}
           >
-            <Text style={styles.profileIcon}>
-              👤
-            </Text>
+            <Text style={styles.profileIcon}>👤</Text>
           </TouchableOpacity>
         </View>
 
-        {/* SEARCH CARD */}
+        <View style={styles.searchCard}>
+          <View style={styles.inputRow}>
+            <View style={styles.infoIcon}>
+              <Text>📍</Text>
+            </View>
 
-      <View style={styles.searchCard}>
-          <TouchableOpacity>
-            <InfoRow
-              icon="📍"
-              label="From"
-              value="Select Departure"
+            <View style={{ flex: 1 }}>
+              <Text style={styles.infoLabel}>From</Text>
+              <TextInput
+                style={styles.locationInput}
+                placeholder="Enter departure"
+                placeholderTextColor="#8A98AA"
+                value={from}
+                onChangeText={setFrom}
+              />
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.inputRow}>
+            <View style={styles.infoIcon}>
+              <Text>📍</Text>
+            </View>
+
+            <View style={{ flex: 1 }}>
+              <Text style={styles.infoLabel}>To</Text>
+              <TextInput
+                style={styles.locationInput}
+                placeholder="Enter destination"
+                placeholderTextColor="#8A98AA"
+                value={to}
+                onChangeText={setTo}
+              />
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.grid}>
+            <TouchableOpacity
+              style={styles.infoBox}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={styles.boxIcon}>📅</Text>
+              <Text style={styles.infoLabel}>Journey Date</Text>
+              <Text style={styles.infoValue}>
+                {journeyDate.toDateString()}
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.passengerBox}>
+              <Text style={styles.boxIcon}>👤</Text>
+              <Text style={styles.infoLabel}>Passengers</Text>
+
+              <View style={styles.counterRow}>
+                <TouchableOpacity
+                  style={styles.counterBtn}
+                  onPress={() => setPassengers(Math.max(1, passengers - 1))}
+                >
+                  <Text style={styles.counterText}>−</Text>
+                </TouchableOpacity>
+
+                <Text style={styles.passengerCount}>{passengers}</Text>
+
+                <TouchableOpacity
+                  style={styles.counterBtn}
+                  onPress={() => setPassengers(passengers + 1)}
+                >
+                  <Text style={styles.counterText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={journeyDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              minimumDate={new Date()}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(false);
+
+                if (selectedDate) {
+                  setJourneyDate(selectedDate);
+                }
+              }}
             />
+          )}
+
+          <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+            <Text style={styles.searchText}>🔍 Search Buses</Text>
           </TouchableOpacity>
+        </View>
 
-      <View style={styles.divider} />
-
-        <TouchableOpacity>
-          <InfoRow
-            icon="📍"
-            label="To"
-            value="Select Destination"
-          />
-        </TouchableOpacity>
-
-      <View style={styles.divider} />
-
-        <View style={styles.grid}>
-          <TouchableOpacity style={{ flex: 1 }}>
-          <InfoBox
-            icon="📅"
-            label="Journey Date"
-            value={new Date().toDateString()}
-          />
-        </TouchableOpacity>
-
-      <TouchableOpacity style={{ flex: 1 }}>
-        <InfoBox
-          icon="👤"
-          label="Passengers"
-          value="1 Passenger"
-        />
-      </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={styles.searchButton}
-        onPress={() => router.push("/buses")}
-      >
-      <Text style={styles.searchText}>
-        🔍 Search Buses
-      </Text>
-    </TouchableOpacity>
-  </View>
-
-
-        {/* FEATURES */}
-
-        <Text style={styles.sectionTitle}>
-          Why Choose Us?
-        </Text>
+        <Text style={styles.sectionTitle}>Why Choose Us?</Text>
 
         <View style={styles.featureRow}>
-          <FeatureCard
-            icon="🛡️"
-            title="Secure"
-            text="Safe booking"
-          />
-
-          <FeatureCard
-            icon="⏱️"
-            title="Fast"
-            text="Quick seats"
-          />
-
-          <FeatureCard
-            icon="📍"
-            title="Tracking"
-            text="Live GPS"
-          />
+          <FeatureCard icon="🛡️" title="Secure" text="Safe booking" />
+          <FeatureCard icon="⏱️" title="Fast" text="Quick seats" />
+          <FeatureCard icon="📍" title="Tracking" text="Live GPS" />
         </View>
       </ScrollView>
-
-      {/* BOTTOM NAV */}
 
       <View style={styles.bottomNav}>
         <NavItem
           icon="🏠"
           label="Home"
           active
-          onPress={() =>
-            router.push("/home")
-          }
+          onPress={() => router.push("/home")}
         />
 
         <NavItem
           icon="🎫"
           label="Bookings"
-          onPress={() =>
-            router.push("/my-bookings" as any)
-          }
+          onPress={() => router.push("/my-bookings" as any)}
         />
 
-        <NavItem
-          icon="🏷️"
-          label="Offers"
-        />
+        <NavItem icon="🏷️" label="Offers" />
 
         <NavItem
           icon="👤"
           label="Profile"
-          onPress={() =>
-            router.push("/profile")
-          }
+          onPress={() => router.push("/profile")}
         />
       </View>
     </View>
   );
 }
 
-/* ================= COMPONENTS ================= */
-
-function InfoRow({
-  icon,
-  label,
-  value,
-}: any) {
-  return (
-    <View style={styles.infoRow}>
-      <View style={styles.infoIcon}>
-        <Text>{icon}</Text>
-      </View>
-
-      <View>
-        <Text style={styles.infoLabel}>
-          {label}
-        </Text>
-
-        <Text style={styles.infoValue}>
-          {value}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function InfoBox({
-  icon,
-  label,
-  value,
-}: any) {
-  return (
-    <View style={styles.infoBox}>
-      <Text style={styles.boxIcon}>
-        {icon}
-      </Text>
-
-      <Text style={styles.infoLabel}>
-        {label}
-      </Text>
-
-      <Text style={styles.infoValue}>
-        {value}
-      </Text>
-    </View>
-  );
-}
-
-function RouteCard({
-  from,
-  to,
-  price,
-}: any) {
-  return (
-    <View style={styles.routeCard}>
-      <Image
-        source={require("../assets/images/index-bus.png")}
-        style={styles.routeImage}
-        resizeMode="cover"
-      />
-
-      <Text style={styles.routeTitle}>
-        {from} → {to}
-      </Text>
-
-      <Text style={styles.rating}>
-        ⭐ 4.6
-      </Text>
-
-      <Text style={styles.routePrice}>
-        From {price}
-      </Text>
-    </View>
-  );
-}
-
-function FeatureCard({
-  icon,
-  title,
-  text,
-}: any) {
+function FeatureCard({ icon, title, text }: any) {
   return (
     <View style={styles.featureCard}>
-      <Text style={styles.featureIcon}>
-        {icon}
-      </Text>
-
-      <Text style={styles.featureTitle}>
-        {title}
-      </Text>
-
-      <Text style={styles.featureText}>
-        {text}
-      </Text>
+      <Text style={styles.featureIcon}>{icon}</Text>
+      <Text style={styles.featureTitle}>{title}</Text>
+      <Text style={styles.featureText}>{text}</Text>
     </View>
   );
 }
 
-function NavItem({
-  icon,
-  label,
-  active,
-  onPress,
-}: any) {
+function NavItem({ icon, label, active, onPress }: any) {
   return (
-    <TouchableOpacity
-      style={styles.navItem}
-      onPress={onPress}
-    >
-      <Text
-        style={
-          active
-            ? styles.navIconActive
-            : styles.navIcon
-        }
-      >
+    <TouchableOpacity style={styles.navItem} onPress={onPress}>
+      <Text style={active ? styles.navIconActive : styles.navIcon}>
         {icon}
       </Text>
 
-      <Text
-        style={
-          active
-            ? styles.navTextActive
-            : styles.navText
-        }
-      >
+      <Text style={active ? styles.navTextActive : styles.navText}>
         {label}
       </Text>
     </TouchableOpacity>
   );
 }
-
-/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -388,7 +329,7 @@ const styles = StyleSheet.create({
     marginBottom: 26,
   },
 
-  infoRow: {
+  inputRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
@@ -411,9 +352,17 @@ const styles = StyleSheet.create({
 
   infoValue: {
     color: "#071A2F",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "900",
     marginTop: 3,
+  },
+
+  locationInput: {
+    color: "#071A2F",
+    fontSize: 18,
+    fontWeight: "900",
+    marginTop: 4,
+    paddingVertical: 2,
   },
 
   divider: {
@@ -435,9 +384,44 @@ const styles = StyleSheet.create({
     padding: 15,
   },
 
+  passengerBox: {
+    flex: 1,
+    backgroundColor: "#F8FBFF",
+    borderRadius: 18,
+    padding: 15,
+  },
+
   boxIcon: {
     fontSize: 22,
     marginBottom: 8,
+  },
+
+  counterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+    gap: 12,
+  },
+
+  counterBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: "#1457D9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  counterText: {
+    color: "#FFFFFF",
+    fontSize: 20,
+    fontWeight: "900",
+  },
+
+  passengerCount: {
+    color: "#071A2F",
+    fontSize: 20,
+    fontWeight: "900",
   },
 
   searchButton: {
@@ -454,56 +438,11 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
   sectionTitle: {
     color: "#071A2F",
     fontSize: 22,
     fontWeight: "900",
     marginBottom: 16,
-  },
-
-  viewAll: {
-    color: "#1457D9",
-    fontWeight: "800",
-  },
-
-  routeCard: {
-    width: 155,
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 12,
-    marginRight: 14,
-    marginBottom: 28,
-  },
-
-  routeImage: {
-    width: "100%",
-    height: 95,
-    borderRadius: 15,
-    marginBottom: 10,
-  },
-
-  routeTitle: {
-    color: "#071A2F",
-    fontWeight: "900",
-    fontSize: 14,
-  },
-
-  rating: {
-    color: "#F5A400",
-    marginTop: 6,
-    fontSize: 12,
-  },
-
-  routePrice: {
-    color: "#667085",
-    fontSize: 12,
-    marginTop: 8,
   },
 
   featureRow: {

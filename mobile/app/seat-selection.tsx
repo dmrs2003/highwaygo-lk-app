@@ -11,7 +11,14 @@ import { useLocalSearchParams, router } from "expo-router";
 import API from "../services/api";
 
 export default function SeatSelection() {
-  const { busId } = useLocalSearchParams<{ busId: string }>();
+  const { busId, passengers, date } = useLocalSearchParams<{
+    busId: string;
+    passengers?: string;
+    date?: string;
+  }>();
+
+  const passengerCount = Number(passengers || 1);
+  const travelDate = date || new Date().toISOString().split("T")[0];
 
   const [totalSeats, setTotalSeats] = useState(0);
   const [lastRowSeats, setLastRowSeats] = useState(5);
@@ -23,8 +30,6 @@ export default function SeatSelection() {
   const [routeFrom, setRouteFrom] = useState("");
   const [routeTo, setRouteTo] = useState("");
   const [departureTime, setDepartureTime] = useState("");
-
-  const travelDate = "2026-05-24";
 
   const fetchSeats = async () => {
     try {
@@ -40,7 +45,10 @@ export default function SeatSelection() {
       setRouteTo(res.data.routeTo);
       setDepartureTime(res.data.departureTime);
     } catch (error: any) {
-      Alert.alert("Error", error.response?.data?.message || "Failed to load seats");
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to load seats"
+      );
     }
   };
 
@@ -51,21 +59,35 @@ export default function SeatSelection() {
   const toggleSeat = (seatNo: number) => {
     if (selectedSeats.includes(seatNo)) {
       setSelectedSeats(selectedSeats.filter((s) => s !== seatNo));
-    } else {
-      setSelectedSeats([...selectedSeats, seatNo]);
+      return;
     }
+
+    if (selectedSeats.length >= passengerCount) {
+      Alert.alert(
+        "Seat Limit",
+        `You can select only ${passengerCount} seat(s)`
+      );
+      return;
+    }
+
+    setSelectedSeats([...selectedSeats, seatNo]);
   };
 
   const goToPayment = () => {
-    if (selectedSeats.length === 0) {
-      Alert.alert("Error", "Please select at least one seat");
+    if (selectedSeats.length !== passengerCount) {
+      Alert.alert(
+        "Select Seats",
+        `Please select exactly ${passengerCount} seat(s)`
+      );
       return;
     }
 
     const amount = selectedSeats.length * ticketPrice;
 
     router.push(
-      `/payment?busId=${busId}&seats=${selectedSeats.join(",")}&date=${travelDate}&amount=${amount}`
+      `/payment?busId=${busId}&seats=${selectedSeats.join(
+        ","
+      )}&date=${travelDate}&amount=${amount}` as any
     );
   };
 
@@ -152,8 +174,9 @@ export default function SeatSelection() {
       </View>
 
       <View style={styles.tripCard}>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.busName}>{busName || "HighwayGo Bus"}</Text>
+
           <Text style={styles.route}>
             {routeFrom || "From"} → {routeTo || "To"}
           </Text>
@@ -163,6 +186,16 @@ export default function SeatSelection() {
           <Text style={styles.time}>{departureTime || "Time"}</Text>
           <Text style={styles.date}>{travelDate}</Text>
         </View>
+      </View>
+
+      <View style={styles.passengerInfo}>
+        <Text style={styles.passengerInfoText}>
+          Passengers: {passengerCount}
+        </Text>
+
+        <Text style={styles.passengerInfoText}>
+          Select exactly {passengerCount} seat(s)
+        </Text>
       </View>
 
       <View style={styles.frontBox}>
@@ -182,8 +215,9 @@ export default function SeatSelection() {
       <View style={styles.summaryCard}>
         <View>
           <Text style={styles.summaryLabel}>
-            Selected Seats ({selectedSeats.length})
+            Selected Seats ({selectedSeats.length}/{passengerCount})
           </Text>
+
           <Text style={styles.summarySeats}>
             {selectedSeats.length ? selectedSeats.join(", ") : "None"}
           </Text>
@@ -241,7 +275,8 @@ const styles = StyleSheet.create({
     padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 18,
+    marginBottom: 12,
+    gap: 10,
   },
 
   busName: {
@@ -269,6 +304,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 8,
     fontWeight: "700",
+    textAlign: "right",
+  },
+
+  passengerInfo: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 14,
+    marginBottom: 14,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+
+  passengerInfoText: {
+    color: "#071A2F",
+    fontSize: 13,
+    fontWeight: "900",
   },
 
   frontBox: {

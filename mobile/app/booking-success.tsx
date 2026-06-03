@@ -5,14 +5,33 @@ import {
   TouchableOpacity,
   ScrollView,
   View,
+  Linking,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import API from "../services/api";
 
 export default function BookingSuccess() {
-  const { seats, date, amount } = useLocalSearchParams<{
+  const { bookingId, seats, date, amount } = useLocalSearchParams<{
+    bookingId?: string;
     seats?: string;
     date?: string;
     amount?: string;
   }>();
+
+  const downloadReceipt = async () => {
+    if (!bookingId) {
+      Alert.alert("Error", "Booking ID not found");
+      return;
+    }
+
+    try {
+      const receiptUrl = `${API.defaults.baseURL}/bookings/receipt/${bookingId}`;
+      await Linking.openURL(receiptUrl);
+    } catch (error) {
+      Alert.alert("Error", "Failed to open receipt");
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -32,26 +51,10 @@ export default function BookingSuccess() {
           <Text style={styles.status}>CONFIRMED</Text>
         </View>
 
-        <View style={styles.routeBox}>
-          <View>
-            <Text style={styles.city}>Colombo</Text>
-            <Text style={styles.small}>From</Text>
-          </View>
-
-          <Text style={styles.arrow}>→</Text>
-
-          <View>
-            <Text style={styles.city}>Kandy</Text>
-            <Text style={styles.small}>To</Text>
-          </View>
-        </View>
-
-        <View style={styles.divider} />
-
+        <InfoRow label="Booking ID" value={bookingId || "N/A"} />
         <InfoRow label="Seats" value={seats || "N/A"} />
         <InfoRow label="Travel Date" value={date || "N/A"} />
         <InfoRow label="Payment" value={`LKR ${amount || "0"}`} />
-        <InfoRow label="Booking ID" value="HG-LK-2026" />
 
         <View style={styles.qrBox}>
           <Text style={styles.qrText}>▦ ▦ ▦ ▦ ▦</Text>
@@ -59,19 +62,22 @@ export default function BookingSuccess() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.downloadButton}>
+      <TouchableOpacity style={styles.downloadButton} onPress={downloadReceipt}>
         <Text style={styles.downloadText}>Download PDF Receipt</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.emailButton}>
-        <Text style={styles.emailText}>Email Receipt</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.homeButton}
-        onPress={() => router.push("/home")}
+        onPress={() => router.replace("/my-bookings" as any)}
       >
-        <Text style={styles.homeText}>Back to Home</Text>
+        <Text style={styles.homeText}>Go to My Bookings</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.outlineButton}
+        onPress={() => router.replace("/home")}
+      >
+        <Text style={styles.outlineText}>Back to Home</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -147,7 +153,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 22,
+    marginBottom: 20,
   },
 
   ticketTitle: {
@@ -166,44 +172,11 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  routeBox: {
-    backgroundColor: "#1457D9",
-    borderRadius: 22,
-    padding: 18,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  city: {
-    color: "#FFFFFF",
-    fontSize: 20,
-    fontWeight: "900",
-  },
-
-  small: {
-    color: "#CFE0FF",
-    fontSize: 12,
-    marginTop: 4,
-    fontWeight: "700",
-  },
-
-  arrow: {
-    color: "#FFFFFF",
-    fontSize: 32,
-    fontWeight: "900",
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: "#E5EAF2",
-    marginVertical: 20,
-  },
-
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     marginBottom: 14,
+    gap: 16,
   },
 
   label: {
@@ -214,8 +187,10 @@ const styles = StyleSheet.create({
 
   value: {
     color: "#071A2F",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "900",
+    flex: 1,
+    textAlign: "right",
   },
 
   qrBox: {
@@ -255,7 +230,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
   },
 
-  emailButton: {
+  homeButton: {
     width: "100%",
     backgroundColor: "#071A2F",
     padding: 16,
@@ -264,13 +239,13 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  emailText: {
+  homeText: {
     color: "#FFD447",
     fontSize: 17,
     fontWeight: "900",
   },
 
-  homeButton: {
+  outlineButton: {
     width: "100%",
     borderWidth: 1.5,
     borderColor: "#1457D9",
@@ -279,7 +254,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  homeText: {
+  outlineText: {
     color: "#1457D9",
     fontSize: 16,
     fontWeight: "900",

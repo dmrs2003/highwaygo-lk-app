@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   View,
+  ActivityIndicator,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -24,6 +25,9 @@ export default function Payment() {
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry] = useState("");
   const [cvv, setCvv] = useState("");
+  const [paying, setPaying] = useState(false);
+
+  const seatList = seats ? seats.split(",").map(Number) : [];
 
   const handleFakePayment = async () => {
     if (!cardName || !cardNumber || !expiry || !cvv) {
@@ -32,13 +36,15 @@ export default function Payment() {
     }
 
     try {
+      setPaying(true);
+
       const token = await AsyncStorage.getItem("token");
 
-      await API.post(
+      const res = await API.post(
         "/bookings/book",
         {
           busId,
-          seatNumbers: seats.split(",").map(Number),
+          seatNumbers: seatList,
           travelDate: date,
         },
         {
@@ -48,8 +54,13 @@ export default function Payment() {
         }
       );
 
+      const bookingId = res.data.booking?._id;
+
       Alert.alert("Success", "Payment successful");
-      router.push(`/booking-success?seats=${seats}&date=${date}&amount=${amount}`);
+
+      router.replace(
+        `/booking-success?bookingId=${bookingId}&seats=${seats}&date=${date}&amount=${amount}` as any
+      );
     } catch (error: any) {
       Alert.alert(
         "Payment Failed",
@@ -57,6 +68,8 @@ export default function Payment() {
           error.response?.data?.error ||
           "Payment failed"
       );
+    } finally {
+      setPaying(false);
     }
   };
 
@@ -72,32 +85,23 @@ export default function Payment() {
         <Text style={styles.amountLabel}>Total Amount</Text>
         <Text style={styles.amount}>LKR {amount || "0"}</Text>
 
-        <View style={styles.ticketRow}>
-          <Text style={styles.ticketLabel}>Seats</Text>
-          <Text style={styles.ticketValue}>{seats}</Text>
-        </View>
-
-        <View style={styles.ticketRow}>
-          <Text style={styles.ticketLabel}>Travel Date</Text>
-          <Text style={styles.ticketValue}>{date}</Text>
-        </View>
+        <InfoRow label="Seats" value={seats || "N/A"} />
+        <InfoRow label="Passengers" value={String(seatList.length)} />
+        <InfoRow label="Travel Date" value={date || "N/A"} />
       </View>
 
       <View style={styles.cardPreview}>
         <View>
           <Text style={styles.cardSmall}>HIGHWAYGO LK</Text>
+
           <Text style={styles.cardNumber}>
-            {cardNumber ? cardNumber : "4242 4242 4242 4242"}
+            {cardNumber || "4242 4242 4242 4242"}
           </Text>
         </View>
 
         <View style={styles.cardBottom}>
-          <Text style={styles.cardName}>
-            {cardName || "CARD HOLDER"}
-          </Text>
-          <Text style={styles.cardExpiry}>
-            {expiry || "12/28"}
-          </Text>
+          <Text style={styles.cardName}>{cardName || "CARD HOLDER"}</Text>
+          <Text style={styles.cardExpiry}>{expiry || "12/28"}</Text>
         </View>
       </View>
 
@@ -139,15 +143,32 @@ export default function Payment() {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.payButton} onPress={handleFakePayment}>
-          <Text style={styles.payText}>Pay & Confirm Booking ›</Text>
+        <TouchableOpacity
+          style={[styles.payButton, paying && styles.disabledButton]}
+          onPress={handleFakePayment}
+          disabled={paying}
+        >
+          {paying ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.payText}>Pay & Confirm Booking ›</Text>
+          )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => router.back()} disabled={paying}>
           <Text style={styles.backText}>Back to Seat Selection</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
+  );
+}
+
+function InfoRow({ label, value }: any) {
+  return (
+    <View style={styles.ticketRow}>
+      <Text style={styles.ticketLabel}>{label}</Text>
+      <Text style={styles.ticketValue}>{value}</Text>
+    </View>
   );
 }
 
@@ -327,6 +348,10 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: "center",
     marginTop: 8,
+  },
+
+  disabledButton: {
+    opacity: 0.7,
   },
 
   payText: {

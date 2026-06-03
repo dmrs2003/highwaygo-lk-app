@@ -9,7 +9,7 @@ import {
   Image,
   TextInput,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import API from "../services/api";
 import PremiumLoader from "../components/PremiumLoader";
 
@@ -27,12 +27,23 @@ type Bus = {
 };
 
 export default function Buses() {
+  const { from, to, date, passengers } = useLocalSearchParams<{
+    from?: string;
+    to?: string;
+    date?: string;
+    passengers?: string;
+  }>();
+
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [search, setSearch] = useState("");
   const [sortType, setSortType] = useState<"default" | "low" | "high">(
     "default"
   );
+
+  const travelDate = date || new Date().toISOString().split("T")[0];
+  const passengerCount = passengers || "1";
 
   const fetchBuses = async () => {
     try {
@@ -51,12 +62,29 @@ export default function Buses() {
 
   useEffect(() => {
     fetchBuses();
+
+    if (from || to) {
+      setSearch(`${from || ""} ${to || ""}`.trim());
+    }
   }, []);
 
   const filteredBuses = useMemo(() => {
     let result = buses.filter((bus) => {
-      const text = `${bus.busName} ${bus.busNumber} ${bus.routeFrom} ${bus.routeTo}`.toLowerCase();
-      return text.includes(search.toLowerCase());
+      const allText = `${bus.busName} ${bus.busNumber} ${bus.routeFrom} ${bus.routeTo}`.toLowerCase();
+
+      const searchText = search.toLowerCase();
+
+      const matchesSearch = allText.includes(searchText);
+
+      const matchesFrom = from
+        ? bus.routeFrom.toLowerCase().includes(String(from).toLowerCase())
+        : true;
+
+      const matchesTo = to
+        ? bus.routeTo.toLowerCase().includes(String(to).toLowerCase())
+        : true;
+
+      return matchesSearch && matchesFrom && matchesTo;
     });
 
     if (sortType === "low") {
@@ -68,7 +96,7 @@ export default function Buses() {
     }
 
     return result;
-  }, [buses, search, sortType]);
+  }, [buses, search, sortType, from, to]);
 
   return (
     <View style={styles.container}>
@@ -82,6 +110,34 @@ export default function Buses() {
         <TouchableOpacity onPress={fetchBuses}>
           <Text style={styles.filter}>↻</Text>
         </TouchableOpacity>
+      </View>
+
+      {(from || to) && (
+        <View style={styles.routeBox}>
+          <View>
+            <Text style={styles.routeLabel}>From</Text>
+            <Text style={styles.routeValue}>{from || "Any"}</Text>
+          </View>
+
+          <Text style={styles.routeArrow}>→</Text>
+
+          <View>
+            <Text style={styles.routeLabel}>To</Text>
+            <Text style={styles.routeValue}>{to || "Any"}</Text>
+          </View>
+        </View>
+      )}
+
+      <View style={styles.tripInfoRow}>
+        <View style={styles.tripInfoCard}>
+          <Text style={styles.tripInfoLabel}>Date</Text>
+          <Text style={styles.tripInfoValue}>{travelDate}</Text>
+        </View>
+
+        <View style={styles.tripInfoCard}>
+          <Text style={styles.tripInfoLabel}>Passengers</Text>
+          <Text style={styles.tripInfoValue}>{passengerCount}</Text>
+        </View>
       </View>
 
       <View style={styles.searchBox}>
@@ -186,7 +242,9 @@ export default function Buses() {
               <TouchableOpacity
                 style={styles.selectButton}
                 onPress={() =>
-                  router.push(`/seat-selection?busId=${item._id}`)
+                  router.push(
+                    `/seat-selection?busId=${item._id}&passengers=${passengerCount}&date=${travelDate}` as any
+                  )
                 }
               >
                 <Text style={styles.selectText}>Select Seats</Text>
@@ -270,6 +328,61 @@ const styles = StyleSheet.create({
     fontSize: 26,
     color: "#1457D9",
     fontWeight: "900",
+  },
+
+  routeBox: {
+    backgroundColor: "#1457D9",
+    borderRadius: 22,
+    padding: 18,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+
+  routeLabel: {
+    color: "#CFE0FF",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+
+  routeValue: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "900",
+    marginTop: 4,
+  },
+
+  routeArrow: {
+    color: "#FFFFFF",
+    fontSize: 30,
+    fontWeight: "900",
+  },
+
+  tripInfoRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 14,
+  },
+
+  tripInfoCard: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 14,
+  },
+
+  tripInfoLabel: {
+    color: "#667085",
+    fontSize: 12,
+    fontWeight: "800",
+  },
+
+  tripInfoValue: {
+    color: "#071A2F",
+    fontSize: 14,
+    fontWeight: "900",
+    marginTop: 5,
   },
 
   searchBox: {
