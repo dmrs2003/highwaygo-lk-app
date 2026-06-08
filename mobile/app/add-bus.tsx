@@ -8,7 +8,9 @@ import {
   Alert,
   View,
   Image,
+  ActivityIndicator,
 } from "react-native";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
@@ -23,35 +25,88 @@ export default function AddBus() {
   const [price, setPrice] = useState("");
   const [totalSeats, setTotalSeats] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const pickImage = async () => {
+    try {
+      const permission =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        Alert.alert(
+          "Permission Required",
+          "Please allow gallery access to select bus image"
+        );
+        return;
+      }
+
+      const result =
+        await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [16, 9],
+          quality: 0.3,
+          base64: true,
+        });
+
+      if (!result.canceled) {
+        const asset = result.assets[0];
+
+        if (!asset.base64) {
+          Alert.alert("Error", "Could not read image");
+          return;
+        }
+
+        const base64Image = `data:image/jpeg;base64,${asset.base64}`;
+        setImageUrl(base64Image);
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Failed to pick image");
+    }
+  };
 
   const handleAddBus = async () => {
     if (
-      !busName ||
-      !busNumber ||
-      !routeFrom ||
-      !routeTo ||
-      !departureTime ||
-      !arrivalTime ||
-      !price ||
-      !totalSeats ||
+      !busName.trim() ||
+      !busNumber.trim() ||
+      !routeFrom.trim() ||
+      !routeTo.trim() ||
+      !departureTime.trim() ||
+      !arrivalTime.trim() ||
+      !price.trim() ||
+      !totalSeats.trim() ||
       !imageUrl
     ) {
-      Alert.alert("Error", "Please fill all fields");
+      Alert.alert(
+        "Error",
+        "Please fill all fields and select bus image"
+      );
+      return;
+    }
+
+    const token = await AsyncStorage.getItem("ownerToken");
+
+    if (!token) {
+      Alert.alert(
+        "Login Required",
+        "Owner token not found. Please login again."
+      );
+      router.replace("/owner-login");
       return;
     }
 
     try {
-      const token = await AsyncStorage.getItem("ownerToken");
+      setLoading(true);
 
-      await API.post(
+      const response = await API.post(
         "/buses/add",
         {
-          busName,
-          busNumber,
-          routeFrom,
-          routeTo,
-          departureTime,
-          arrivalTime,
+          busName: busName.trim(),
+          busNumber: busNumber.trim(),
+          routeFrom: routeFrom.trim(),
+          routeTo: routeTo.trim(),
+          departureTime: departureTime.trim(),
+          arrivalTime: arrivalTime.trim(),
           price: Number(price),
           totalSeats: Number(totalSeats),
           imageUrl,
@@ -63,22 +118,38 @@ export default function AddBus() {
         }
       );
 
-      Alert.alert("Success", "Bus added successfully");
+      Alert.alert(
+        "Success",
+        response.data?.message || "Bus added successfully"
+      );
+
       router.push("/owner-dashboard");
     } catch (error: any) {
+      console.log(
+        "ADD BUS ERROR:",
+        error.response?.data || error.message
+      );
+
       Alert.alert(
         "Error",
         error.response?.data?.message ||
           error.response?.data?.error ||
+          error.message ||
           "Failed to add bus"
       );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Image
-        source={require("../assets/images/index-bus.png")}
+        source={
+          imageUrl
+            ? { uri: imageUrl }
+            : require("../assets/images/index-bus.png")
+        }
         style={styles.heroImage}
         resizeMode="cover"
       />
@@ -90,16 +161,37 @@ export default function AddBus() {
       </Text>
 
       <View style={styles.card}>
-        <Input label="Bus Name" value={busName} setValue={setBusName} />
-        <Input label="Bus Number" value={busNumber} setValue={setBusNumber} />
+        <Input
+          label="Bus Name"
+          value={busName}
+          setValue={setBusName}
+          placeholder="Highway Express"
+        />
+
+        <Input
+          label="Bus Number"
+          value={busNumber}
+          setValue={setBusNumber}
+          placeholder="NC-1010"
+        />
 
         <View style={styles.row}>
           <View style={styles.half}>
-            <Input label="Route From" value={routeFrom} setValue={setRouteFrom} />
+            <Input
+              label="Route From"
+              value={routeFrom}
+              setValue={setRouteFrom}
+              placeholder="Elpitiya"
+            />
           </View>
 
           <View style={styles.half}>
-            <Input label="Route To" value={routeTo} setValue={setRouteTo} />
+            <Input
+              label="Route To"
+              value={routeTo}
+              setValue={setRouteTo}
+              placeholder="Colombo"
+            />
           </View>
         </View>
 
@@ -145,22 +237,49 @@ export default function AddBus() {
           </View>
         </View>
 
-        <Input
-          label="Bus Image URL"
-          value={imageUrl}
-          setValue={setImageUrl}
-          placeholder="https://example.com/bus.jpg"
-        />
+        <TouchableOpacity
+          style={styles.imageButton}
+          onPress={pickImage}
+          disabled={loading}
+        >
+          <Text style={styles.imageButtonText}>
+            {imageUrl
+              ? "Change Bus Image"
+              : "Select Bus Image from Gallery"}
+          </Text>
+        </TouchableOpacity>
 
-        <TouchableOpacity style={styles.primaryButton} onPress={handleAddBus}>
-          <Text style={styles.primaryText}>Add Bus ›</Text>
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.previewImage}
+            resizeMode="cover"
+          />
+        ) : null}
+
+        <TouchableOpacity
+          style={[
+            styles.primaryButton,
+            loading && styles.disabledButton,
+          ]}
+          onPress={handleAddBus}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.primaryText}>Add Bus ›</Text>
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.outlineButton}
           onPress={() => router.push("/owner-dashboard")}
+          disabled={loading}
         >
-          <Text style={styles.outlineText}>Back to Dashboard</Text>
+          <Text style={styles.outlineText}>
+            Back to Dashboard
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -262,6 +381,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  imageButton: {
+    backgroundColor: "#071A2F",
+    padding: 15,
+    borderRadius: 18,
+    alignItems: "center",
+    marginBottom: 14,
+  },
+
+  imageButtonText: {
+    color: "#FFD447",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+
+  previewImage: {
+    width: "100%",
+    height: 170,
+    borderRadius: 22,
+    marginBottom: 16,
+  },
+
   primaryButton: {
     backgroundColor: "#1457D9",
     padding: 16,
@@ -269,6 +409,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 8,
     marginBottom: 12,
+  },
+
+  disabledButton: {
+    opacity: 0.7,
   },
 
   primaryText: {

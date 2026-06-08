@@ -24,6 +24,9 @@ app.get("/", (req, res) => {
   res.send("HighwayGo LK API Running");
 });
 
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
 // Protected test route
 app.get("/api/protected", protect, (req, res) => {
   res.json({
