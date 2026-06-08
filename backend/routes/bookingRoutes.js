@@ -47,7 +47,6 @@ router.get(
 );
 
 // ================= TRACK BOOKED BUS =================
-// passenger can track only own booked bus
 
 router.get(
   "/track/:bookingId",
@@ -56,10 +55,10 @@ router.get(
 );
 
 // ================= DOWNLOAD RECEIPT =================
+// Public route because browser/Linking cannot send auth header
 
 router.get(
   "/receipt/:bookingId",
-  protect,
   downloadReceipt
 );
 
