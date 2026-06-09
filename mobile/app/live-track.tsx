@@ -7,7 +7,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
 import { router, useLocalSearchParams } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
@@ -26,6 +26,27 @@ type TrackingData = {
     longitude: number;
     updatedAt: string;
   };
+};
+
+type Coordinate = {
+  latitude: number;
+  longitude: number;
+};
+
+const routeCoordinates: Record<string, Coordinate> = {
+  elpitiya: { latitude: 6.2906, longitude: 80.1612 },
+  colombo: { latitude: 6.9271, longitude: 79.8612 },
+  galle: { latitude: 6.0535, longitude: 80.221 },
+  matara: { latitude: 5.9549, longitude: 80.555 },
+  kandy: { latitude: 7.2906, longitude: 80.6337 },
+  kurunegala: { latitude: 7.4863, longitude: 80.3623 },
+  negombo: { latitude: 7.2083, longitude: 79.8358 },
+  anuradhapura: { latitude: 8.3114, longitude: 80.4037 },
+};
+
+const getCoordinate = (city?: string) => {
+  if (!city) return null;
+  return routeCoordinates[city.trim().toLowerCase()] || null;
 };
 
 export default function LiveTrack() {
@@ -76,8 +97,15 @@ export default function LiveTrack() {
     );
   }
 
-  const latitude = tracking.currentLocation?.latitude || 6.9271;
-  const longitude = tracking.currentLocation?.longitude || 79.8612;
+  const busLocation = {
+    latitude: tracking.currentLocation?.latitude || 6.9271,
+    longitude: tracking.currentLocation?.longitude || 79.8612,
+  };
+
+  const startLocation = getCoordinate(tracking.routeFrom);
+  const endLocation = getCoordinate(tracking.routeTo);
+
+  const hasRouteLine = startLocation && endLocation;
 
   return (
     <View style={styles.container}>
@@ -85,17 +113,40 @@ export default function LiveTrack() {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         region={{
-          latitude,
-          longitude,
-          latitudeDelta: 0.04,
-          longitudeDelta: 0.04,
+          latitude: busLocation.latitude,
+          longitude: busLocation.longitude,
+          latitudeDelta: hasRouteLine ? 0.9 : 0.04,
+          longitudeDelta: hasRouteLine ? 0.9 : 0.04,
         }}
       >
+        {startLocation && (
+          <Marker
+            coordinate={startLocation}
+            title={tracking.routeFrom}
+            description="Departure"
+            pinColor="green"
+          />
+        )}
+
+        {endLocation && (
+          <Marker
+            coordinate={endLocation}
+            title={tracking.routeTo}
+            description="Destination"
+            pinColor="red"
+          />
+        )}
+
+        {hasRouteLine && (
+          <Polyline
+            coordinates={[startLocation, endLocation]}
+            strokeColor="#1457D9"
+            strokeWidth={5}
+          />
+        )}
+
         <Marker
-          coordinate={{
-            latitude,
-            longitude,
-          }}
+          coordinate={busLocation}
           title={tracking.busName}
           description={`${tracking.routeFrom} → ${tracking.routeTo}`}
         />
@@ -130,6 +181,13 @@ export default function LiveTrack() {
             {tracking.routeFrom} → {tracking.routeTo}
           </Text>
         </View>
+
+        {!hasRouteLine && (
+          <Text style={styles.routeNote}>
+            Route line not available for this city pair. Add coordinates in
+            routeCoordinates.
+          </Text>
+        )}
 
         <Info label="Travel Date" value={tracking.travelDate} />
         <Info label="Departure" value={tracking.departureTime} />
@@ -262,6 +320,14 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 17,
     fontWeight: "900",
+    textAlign: "center",
+  },
+
+  routeNote: {
+    color: "#F5A400",
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: 12,
     textAlign: "center",
   },
 

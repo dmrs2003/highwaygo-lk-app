@@ -4,14 +4,64 @@ const Bus = require("../models/Bus");
 
 exports.addBus = async (req, res) => {
   try {
-    const bus = await Bus.create({
-      ...req.body,
+    const {
+      busName,
+      busNumber,
+      routeFrom,
+      routeTo,
+      departureTime,
+      arrivalTime,
+      price,
+      totalSeats,
+      imageUrl,
+
+      // return trip fields
+      isReturnRoute,
+      returnDepartureTime,
+      returnArrivalTime,
+    } = req.body;
+
+    const outgoingBus = await Bus.create({
+      busName,
+      busNumber,
+      routeFrom,
+      routeTo,
+      departureTime,
+      arrivalTime,
+      price,
+      totalSeats,
+      imageUrl,
       ownerId: req.owner.id,
     });
 
+    let returnBus = null;
+
+    if (isReturnRoute === true) {
+      if (!returnDepartureTime || !returnArrivalTime) {
+        return res.status(400).json({
+          message: "Return departure and arrival time are required",
+        });
+      }
+
+      returnBus = await Bus.create({
+        busName: `${busName} Return`,
+        busNumber: `${busNumber}-R`,
+        routeFrom: routeTo,
+        routeTo: routeFrom,
+        departureTime: returnDepartureTime,
+        arrivalTime: returnArrivalTime,
+        price,
+        totalSeats,
+        imageUrl,
+        ownerId: req.owner.id,
+      });
+    }
+
     res.status(201).json({
-      message: "Bus added successfully",
-      bus,
+      message: isReturnRoute
+        ? "Bus and return route added successfully"
+        : "Bus added successfully",
+      buses: returnBus ? [outgoingBus, returnBus] : [outgoingBus],
     });
   } catch (error) {
     res.status(500).json({

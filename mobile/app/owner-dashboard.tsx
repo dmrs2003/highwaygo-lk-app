@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { router } from "expo-router";
 import {
   View,
@@ -6,39 +7,67 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import API from "../services/api";
 
 export default function OwnerDashboard() {
+  const [busCount, setBusCount] = useState(0);
+
+  const fetchOwnerBuses = async () => {
+    try {
+      const token = await AsyncStorage.getItem("ownerToken");
+
+      if (!token) {
+        router.replace("/owner-login");
+        return;
+      }
+
+      const res = await API.get("/buses/owner/my-buses", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setBusCount(res.data.length);
+    } catch (error: any) {
+      Alert.alert(
+        "Error",
+        error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to load dashboard"
+      );
+    }
+  };
+
+  useEffect(() => {
+    fetchOwnerBuses();
+  }, []);
+
+  const handleLogout = async () => {
+    await AsyncStorage.removeItem("ownerToken");
+    router.replace("/owner-login");
+  };
+
   return (
     <View style={styles.wrapper}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* HEADER */}
-
         <View style={styles.header}>
           <View>
             <Text style={styles.logo}>
-              HighwayGo{" "}
-              <Text style={styles.logoBlue}>LK</Text>
+              HighwayGo <Text style={styles.logoBlue}>LK</Text>
             </Text>
-
-            <Text style={styles.subtitle}>
-              Owner Control Center
-            </Text>
+            <Text style={styles.subtitle}>Owner Control Center</Text>
           </View>
 
           <TouchableOpacity
             style={styles.profileCircle}
-            onPress={() =>
-              router.push("/owner-profile")
-            }
+            onPress={() => router.push("/owner-profile")}
           >
-            <Text style={styles.profileIcon}>
-              🚌
-            </Text>
+            <Text style={styles.profileIcon}>🚌</Text>
           </TouchableOpacity>
         </View>
-
-        {/* HERO IMAGE */}
 
         <Image
           source={require("../assets/images/index-bus.png")}
@@ -46,251 +75,134 @@ export default function OwnerDashboard() {
           resizeMode="cover"
         />
 
-        {/* HERO CARD */}
-
         <View style={styles.heroCard}>
-          <Text style={styles.heroTitle}>
-            Welcome, Bus Owner 👋
-          </Text>
-
+          <Text style={styles.heroTitle}>Welcome, Bus Owner 👋</Text>
           <Text style={styles.heroText}>
-            Manage your buses, routes,
-            bookings and revenue from one
-            dashboard.
+            Manage your buses, routes, bookings and revenue from one dashboard.
           </Text>
 
           <TouchableOpacity
             style={styles.primaryButton}
-            onPress={() =>
-              router.push("/add-bus")
-            }
+            onPress={() => router.push("/add-bus")}
           >
-            <Text style={styles.primaryText}>
-              ➕ Add New Bus
-            </Text>
+            <Text style={styles.primaryText}>➕ Add New Bus</Text>
           </TouchableOpacity>
         </View>
 
-        {/* OVERVIEW */}
-
-        <Text style={styles.sectionTitle}>
-          Business Overview
-        </Text>
+        <Text style={styles.sectionTitle}>Business Overview</Text>
 
         <View style={styles.grid}>
-          <StatCard
-            icon="🚌"
-            value="0"
-            label="Total Buses"
-          />
-
-          <StatCard
-            icon="🎫"
-            value="0"
-            label="Bookings"
-          />
+          <StatCard icon="🚌" value={String(busCount)} label="Total Buses" />
+          <StatCard icon="🎫" value="0" label="Bookings" />
         </View>
 
         <View style={styles.grid}>
-          <StatCard
-            icon="💰"
-            value="LKR 0"
-            label="Revenue"
-          />
-
-          <StatCard
-            icon="⭐"
-            value="4.8"
-            label="Rating"
-          />
+          <StatCard icon="💰" value="LKR 0" label="Revenue" />
+          <StatCard icon="⭐" value="4.8" label="Rating" />
         </View>
 
-        {/* QUICK ACTIONS */}
-
-        <Text style={styles.sectionTitle}>
-          Quick Actions
-        </Text>
+        <Text style={styles.sectionTitle}>Quick Actions</Text>
 
         <MenuCard
           icon="➕"
           title="Add Bus"
           text="Create new bus route and schedule"
-          onPress={() =>
-            router.push("/add-bus")
-          }
+          onPress={() => router.push("/add-bus")}
         />
 
         <MenuCard
           icon="📋"
           title="My Buses"
           text="View and manage your buses"
-          onPress={() =>
-            router.push("/manage-buses")
-          }
+          onPress={() => router.push("/manage-buses")}
         />
 
         <MenuCard
           icon="🎫"
           title="Passenger Bookings"
           text="Check seats and passenger reservations"
-          onPress={() =>
-            router.push("/owner-bookings")
-          }
+          onPress={() => router.push("/owner-bookings")}
         />
 
         <MenuCard
-          icon="📊"
-          title="Analytics"
-          text="View booking and revenue insights"
+          icon="📍"
+          title="Live Location"
+          text="Update location from manage buses"
+          onPress={() => router.push("/manage-buses")}
         />
 
-        {/* LOGOUT */}
-
-        <TouchableOpacity
-          style={styles.logoutButton}
-          onPress={() =>
-            router.replace("/owner-login")
-          }
-        >
-          <Text style={styles.logoutText}>
-            Logout
-          </Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
-
-      {/* BOTTOM NAV */}
 
       <View style={styles.bottomNav}>
         <NavItem
           icon="🏠"
           label="Home"
           active
-          onPress={() =>
-            router.push("/owner-dashboard")
-          }
+          onPress={() => router.push("/owner-dashboard")}
         />
 
         <NavItem
           icon="🚌"
           label="Buses"
-          onPress={() =>
-            router.push("/manage-buses")
-          }
+          onPress={() => router.push("/manage-buses")}
         />
 
         <NavItem
           icon="🎫"
           label="Bookings"
-          onPress={() =>
-            router.push("/owner-bookings")
-          }
+          onPress={() => router.push("/owner-bookings")}
         />
 
         <NavItem
           icon="👤"
           label="Profile"
-          onPress={() =>
-            router.push("/owner-profile")
-          }
+          onPress={() => router.push("/owner-profile")}
         />
       </View>
     </View>
   );
 }
 
-/* ================= COMPONENTS ================= */
-
-function StatCard({
-  icon,
-  value,
-  label,
-}: any) {
+function StatCard({ icon, value, label }: any) {
   return (
     <View style={styles.statCard}>
-      <Text style={styles.statIcon}>
-        {icon}
-      </Text>
-
-      <Text style={styles.statValue}>
-        {value}
-      </Text>
-
-      <Text style={styles.statLabel}>
-        {label}
-      </Text>
+      <Text style={styles.statIcon}>{icon}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+      <Text style={styles.statLabel}>{label}</Text>
     </View>
   );
 }
 
-function MenuCard({
-  icon,
-  title,
-  text,
-  onPress,
-}: any) {
+function MenuCard({ icon, title, text, onPress }: any) {
   return (
-    <TouchableOpacity
-      style={styles.menuCard}
-      onPress={onPress}
-    >
+    <TouchableOpacity style={styles.menuCard} onPress={onPress}>
       <View style={styles.menuIconBox}>
-        <Text style={styles.menuIcon}>
-          {icon}
-        </Text>
+        <Text style={styles.menuIcon}>{icon}</Text>
       </View>
 
       <View style={styles.menuTextBox}>
-        <Text style={styles.menuTitle}>
-          {title}
-        </Text>
-
-        <Text style={styles.menuSub}>
-          {text}
-        </Text>
+        <Text style={styles.menuTitle}>{title}</Text>
+        <Text style={styles.menuSub}>{text}</Text>
       </View>
 
-      <Text style={styles.menuArrow}>
-        ›
-      </Text>
+      <Text style={styles.menuArrow}>›</Text>
     </TouchableOpacity>
   );
 }
 
-function NavItem({
-  icon,
-  label,
-  active,
-  onPress,
-}: any) {
+function NavItem({ icon, label, active, onPress }: any) {
   return (
-    <TouchableOpacity
-      style={styles.navItem}
-      onPress={onPress}
-    >
-      <Text
-        style={
-          active
-            ? styles.navIconActive
-            : styles.navIcon
-        }
-      >
-        {icon}
-      </Text>
-
-      <Text
-        style={
-          active
-            ? styles.navTextActive
-            : styles.navText
-        }
-      >
+    <TouchableOpacity style={styles.navItem} onPress={onPress}>
+      <Text style={active ? styles.navIconActive : styles.navIcon}>{icon}</Text>
+      <Text style={active ? styles.navTextActive : styles.navText}>
         {label}
       </Text>
     </TouchableOpacity>
   );
 }
-
-/* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
   wrapper: {

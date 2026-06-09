@@ -9,6 +9,7 @@ import {
   View,
   Image,
   ActivityIndicator,
+  Switch,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -25,6 +26,11 @@ export default function AddBus() {
   const [price, setPrice] = useState("");
   const [totalSeats, setTotalSeats] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+
+  const [isReturnRoute, setIsReturnRoute] = useState(false);
+  const [returnDepartureTime, setReturnDepartureTime] = useState("");
+  const [returnArrivalTime, setReturnArrivalTime] = useState("");
+
   const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
@@ -33,21 +39,17 @@ export default function AddBus() {
         await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permission.granted) {
-        Alert.alert(
-          "Permission Required",
-          "Please allow gallery access to select bus image"
-        );
+        Alert.alert("Permission Required", "Please allow gallery access");
         return;
       }
 
-      const result =
-        await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [16, 9],
-          quality: 0.3,
-          base64: true,
-        });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.3,
+        base64: true,
+      });
 
       if (!result.canceled) {
         const asset = result.assets[0];
@@ -57,8 +59,7 @@ export default function AddBus() {
           return;
         }
 
-        const base64Image = `data:image/jpeg;base64,${asset.base64}`;
-        setImageUrl(base64Image);
+        setImageUrl(`data:image/jpeg;base64,${asset.base64}`);
       }
     } catch (error: any) {
       Alert.alert("Error", error.message || "Failed to pick image");
@@ -77,20 +78,19 @@ export default function AddBus() {
       !totalSeats.trim() ||
       !imageUrl
     ) {
-      Alert.alert(
-        "Error",
-        "Please fill all fields and select bus image"
-      );
+      Alert.alert("Error", "Please fill all main bus fields");
+      return;
+    }
+
+    if (isReturnRoute && (!returnDepartureTime.trim() || !returnArrivalTime.trim())) {
+      Alert.alert("Error", "Please fill return departure and arrival time");
       return;
     }
 
     const token = await AsyncStorage.getItem("ownerToken");
 
     if (!token) {
-      Alert.alert(
-        "Login Required",
-        "Owner token not found. Please login again."
-      );
+      Alert.alert("Login Required", "Please login again");
       router.replace("/owner-login");
       return;
     }
@@ -98,7 +98,7 @@ export default function AddBus() {
     try {
       setLoading(true);
 
-      const response = await API.post(
+      const res = await API.post(
         "/buses/add",
         {
           busName: busName.trim(),
@@ -110,6 +110,9 @@ export default function AddBus() {
           price: Number(price),
           totalSeats: Number(totalSeats),
           imageUrl,
+          isReturnRoute,
+          returnDepartureTime: returnDepartureTime.trim(),
+          returnArrivalTime: returnArrivalTime.trim(),
         },
         {
           headers: {
@@ -118,17 +121,10 @@ export default function AddBus() {
         }
       );
 
-      Alert.alert(
-        "Success",
-        response.data?.message || "Bus added successfully"
-      );
-
+      Alert.alert("Success", res.data?.message || "Bus added successfully");
       router.push("/owner-dashboard");
     } catch (error: any) {
-      console.log(
-        "ADD BUS ERROR:",
-        error.response?.data || error.message
-      );
+      console.log("ADD BUS ERROR:", error.response?.data || error.message);
 
       Alert.alert(
         "Error",
@@ -157,7 +153,7 @@ export default function AddBus() {
       <Text style={styles.title}>Add New Bus 🚌</Text>
 
       <Text style={styles.subtitle}>
-        Add route, timing, seats, price and bus image details.
+        Add going route, return route, timings, seats, price and bus image.
       </Text>
 
       <View style={styles.card}>
@@ -175,10 +171,12 @@ export default function AddBus() {
           placeholder="NC-1010"
         />
 
+        <Text style={styles.sectionTitle}>Going Route</Text>
+
         <View style={styles.row}>
           <View style={styles.half}>
             <Input
-              label="Route From"
+              label="From"
               value={routeFrom}
               setValue={setRouteFrom}
               placeholder="Elpitiya"
@@ -187,7 +185,7 @@ export default function AddBus() {
 
           <View style={styles.half}>
             <Input
-              label="Route To"
+              label="To"
               value={routeTo}
               setValue={setRouteTo}
               placeholder="Colombo"
@@ -214,6 +212,56 @@ export default function AddBus() {
             />
           </View>
         </View>
+
+        <View style={styles.returnSwitchBox}>
+          <View>
+            <Text style={styles.returnTitle}>Add Return Route</Text>
+            <Text style={styles.returnSub}>
+              {routeTo || "Destination"} → {routeFrom || "Departure"}
+            </Text>
+          </View>
+
+          <Switch
+            value={isReturnRoute}
+            onValueChange={setIsReturnRoute}
+            trackColor={{ false: "#D8E2F0", true: "#BFD4FF" }}
+            thumbColor={isReturnRoute ? "#1457D9" : "#FFFFFF"}
+          />
+        </View>
+
+        {isReturnRoute && (
+          <View style={styles.returnCard}>
+            <Text style={styles.sectionTitle}>Return Route</Text>
+
+            <View style={styles.returnRouteBox}>
+              <Text style={styles.returnRouteText}>
+                {routeTo || "Destination"} → {routeFrom || "Departure"}
+              </Text>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.half}>
+                <Input
+                  label="Return Departure"
+                  value={returnDepartureTime}
+                  setValue={setReturnDepartureTime}
+                  placeholder="05:00 PM"
+                />
+              </View>
+
+              <View style={styles.half}>
+                <Input
+                  label="Return Arrival"
+                  value={returnArrivalTime}
+                  setValue={setReturnArrivalTime}
+                  placeholder="08:30 PM"
+                />
+              </View>
+            </View>
+          </View>
+        )}
+
+        <Text style={styles.sectionTitle}>Bus Details</Text>
 
         <View style={styles.row}>
           <View style={styles.half}>
@@ -243,9 +291,7 @@ export default function AddBus() {
           disabled={loading}
         >
           <Text style={styles.imageButtonText}>
-            {imageUrl
-              ? "Change Bus Image"
-              : "Select Bus Image from Gallery"}
+            {imageUrl ? "Change Bus Image" : "Select Bus Image from Gallery"}
           </Text>
         </TouchableOpacity>
 
@@ -258,17 +304,16 @@ export default function AddBus() {
         ) : null}
 
         <TouchableOpacity
-          style={[
-            styles.primaryButton,
-            loading && styles.disabledButton,
-          ]}
+          style={[styles.primaryButton, loading && styles.disabledButton]}
           onPress={handleAddBus}
           disabled={loading}
         >
           {loading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.primaryText}>Add Bus ›</Text>
+            <Text style={styles.primaryText}>
+              {isReturnRoute ? "Add Bus + Return Route ›" : "Add Bus ›"}
+            </Text>
           )}
         </TouchableOpacity>
 
@@ -277,9 +322,7 @@ export default function AddBus() {
           onPress={() => router.push("/owner-dashboard")}
           disabled={loading}
         >
-          <Text style={styles.outlineText}>
-            Back to Dashboard
-          </Text>
+          <Text style={styles.outlineText}>Back to Dashboard</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
@@ -354,6 +397,14 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
 
+  sectionTitle: {
+    color: "#071A2F",
+    fontSize: 18,
+    fontWeight: "900",
+    marginBottom: 12,
+    marginTop: 6,
+  },
+
   label: {
     color: "#071A2F",
     fontSize: 15,
@@ -379,6 +430,50 @@ const styles = StyleSheet.create({
 
   half: {
     flex: 1,
+  },
+
+  returnSwitchBox: {
+    backgroundColor: "#F8FBFF",
+    borderRadius: 20,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  returnTitle: {
+    color: "#071A2F",
+    fontSize: 16,
+    fontWeight: "900",
+  },
+
+  returnSub: {
+    color: "#667085",
+    fontSize: 13,
+    marginTop: 4,
+    fontWeight: "700",
+  },
+
+  returnCard: {
+    backgroundColor: "#F8FBFF",
+    borderRadius: 22,
+    padding: 16,
+    marginBottom: 16,
+  },
+
+  returnRouteBox: {
+    backgroundColor: "#E8F1FF",
+    padding: 14,
+    borderRadius: 16,
+    marginBottom: 16,
+  },
+
+  returnRouteText: {
+    color: "#071A2F",
+    fontSize: 16,
+    fontWeight: "900",
+    textAlign: "center",
   },
 
   imageButton: {
