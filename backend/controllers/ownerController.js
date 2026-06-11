@@ -126,3 +126,25 @@ exports.approveOwner = async (req, res) => {
     });
   }
 };
+
+const Owner = require("../models/Owner");
+
+// ================= GET OWNER PROFILE =================
+
+exports.getOwnerProfile = async (req, res) => {
+  try {
+    const owner = await Owner.findById(req.owner.id).select("-password");
+
+    if (!owner) {
+      return res.status(404).json({
+        message: "Owner not found",
+      });
+    }
+
+    res.json(owner);
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+    });
+  }
+};
