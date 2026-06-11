@@ -127,7 +127,7 @@ exports.approveOwner = async (req, res) => {
   }
 };
 
-const Owner = require("../models/Owner");
+
 
 // ================= GET OWNER PROFILE =================
 

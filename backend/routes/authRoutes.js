@@ -1,22 +1,29 @@
 const express = require("express");
 const router = express.Router();
 
-// Import controllers (ONLY ONCE)
+const { protect } = require("../middleware/authMiddleware");
+
 const {
   register,
   verifyEmail,
-  login
+  login,
+  getMe,
 } = require("../controllers/authController");
 
-// ================= ROUTES =================
+// ================= REGISTER USER =================
 
-// Register user
 router.post("/register", register);
 
-// Login user
+// ================= LOGIN USER =================
+
 router.post("/login", login);
 
-// Email verification
+// ================= GET LOGGED IN USER =================
+
+router.get("/me", protect, getMe);
+
+// ================= EMAIL VERIFICATION =================
+
 router.get("/verify/:token", verifyEmail);
 
 module.exports = router;

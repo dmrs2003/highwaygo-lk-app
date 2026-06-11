@@ -39,7 +39,10 @@ export default function Home() {
     try {
       const token = await AsyncStorage.getItem("token");
 
-      if (!token) return;
+      if (!token) {
+        router.replace("/login");
+        return;
+      }
 
       const res = await API.get("/auth/me", {
         headers: {
@@ -48,8 +51,8 @@ export default function Home() {
       });
 
       setUser(res.data);
-    } catch (error) {
-      console.log("USER LOAD ERROR:", error);
+    } catch (error: any) {
+      console.log("USER LOAD ERROR:", error.response?.data || error.message);
     }
   };
 
@@ -57,8 +60,8 @@ export default function Home() {
     try {
       const res = await API.get("/buses");
       setBuses(res.data);
-    } catch (error) {
-      console.log("ROUTES LOAD ERROR:", error);
+    } catch (error: any) {
+      console.log("ROUTES LOAD ERROR:", error.response?.data || error.message);
     }
   };
 
@@ -67,7 +70,7 @@ export default function Home() {
       buses
         .filter((bus) => (to ? bus.routeTo === to : true))
         .map((bus) => bus.routeFrom)
-        .filter((item) => item !== to)
+        .filter((item) => item && item !== to)
     ),
   ];
 
@@ -76,7 +79,7 @@ export default function Home() {
       buses
         .filter((bus) => (from ? bus.routeFrom === from : true))
         .map((bus) => bus.routeTo)
-        .filter((item) => item !== from)
+        .filter((item) => item && item !== from)
     ),
   ];
 
@@ -209,9 +212,7 @@ export default function Home() {
               <View style={styles.counterRow}>
                 <TouchableOpacity
                   style={styles.counterBtn}
-                  onPress={() =>
-                    setPassengers(Math.max(1, passengers - 1))
-                  }
+                  onPress={() => setPassengers(Math.max(1, passengers - 1))}
                 >
                   <Text style={styles.counterText}>−</Text>
                 </TouchableOpacity>
@@ -295,9 +296,7 @@ export default function Home() {
               data={selectType === "from" ? departureList : destinationList}
               keyExtractor={(item) => item}
               ListEmptyComponent={
-                <Text style={styles.emptyRoute}>
-                  No routes available
-                </Text>
+                <Text style={styles.emptyRoute}>No routes available</Text>
               }
               renderItem={({ item }) => (
                 <TouchableOpacity
@@ -335,13 +334,8 @@ function FeatureCard({ icon, title, text }: any) {
 function NavItem({ icon, label, active, onPress }: any) {
   return (
     <TouchableOpacity style={styles.navItem} onPress={onPress}>
-      <Text style={active ? styles.navIconActive : styles.navIcon}>
-        {icon}
-      </Text>
-
-      <Text style={active ? styles.navTextActive : styles.navText}>
-        {label}
-      </Text>
+      <Text style={active ? styles.navIconActive : styles.navIcon}>{icon}</Text>
+      <Text style={active ? styles.navTextActive : styles.navText}>{label}</Text>
     </TouchableOpacity>
   );
 }
@@ -353,34 +347,28 @@ const styles = StyleSheet.create({
     paddingTop: 55,
     paddingHorizontal: 20,
   },
-
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   logo: {
     fontSize: 24,
     fontWeight: "900",
     color: "#071A2F",
   },
-
   logoBlue: {
     color: "#1457D9",
   },
-
   bell: {
     fontSize: 24,
   },
-
   heroImage: {
     width: "100%",
     height: 210,
     borderRadius: 28,
     marginTop: 22,
   },
-
   greetingRow: {
     marginTop: 26,
     marginBottom: 18,
@@ -388,18 +376,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   greeting: {
     fontSize: 26,
     fontWeight: "900",
     color: "#071A2F",
   },
-
   subGreeting: {
     color: "#667085",
     marginTop: 5,
   },
-
   profileCircle: {
     width: 48,
     height: 48,
@@ -408,11 +393,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   profileIcon: {
     fontSize: 22,
   },
-
   searchCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 28,
@@ -423,13 +406,11 @@ const styles = StyleSheet.create({
     elevation: 5,
     marginBottom: 26,
   },
-
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
   },
-
   infoIcon: {
     width: 44,
     height: 44,
@@ -438,65 +419,55 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   infoLabel: {
     color: "#667085",
     fontSize: 12,
     fontWeight: "700",
   },
-
   locationText: {
     color: "#071A2F",
     fontSize: 18,
     fontWeight: "900",
     marginTop: 4,
   },
-
   infoValue: {
     color: "#071A2F",
     fontSize: 15,
     fontWeight: "900",
     marginTop: 3,
   },
-
   divider: {
     height: 1,
     backgroundColor: "#E5EAF2",
     marginVertical: 16,
   },
-
   grid: {
     flexDirection: "row",
     gap: 14,
     marginTop: 4,
   },
-
   infoBox: {
     flex: 1,
     backgroundColor: "#F8FBFF",
     borderRadius: 18,
     padding: 15,
   },
-
   passengerBox: {
     flex: 1,
     backgroundColor: "#F8FBFF",
     borderRadius: 18,
     padding: 15,
   },
-
   boxIcon: {
     fontSize: 22,
     marginBottom: 8,
   },
-
   counterRow: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 10,
     gap: 12,
   },
-
   counterBtn: {
     width: 32,
     height: 32,
@@ -505,19 +476,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   counterText: {
     color: "#FFFFFF",
     fontSize: 20,
     fontWeight: "900",
   },
-
   passengerCount: {
     color: "#071A2F",
     fontSize: 20,
     fontWeight: "900",
   },
-
   searchButton: {
     backgroundColor: "#1457D9",
     padding: 16,
@@ -525,26 +493,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 18,
   },
-
   searchText: {
     color: "#FFFFFF",
     fontSize: 17,
     fontWeight: "900",
   },
-
   sectionTitle: {
     color: "#071A2F",
     fontSize: 22,
     fontWeight: "900",
     marginBottom: 16,
   },
-
   featureRow: {
     flexDirection: "row",
     gap: 12,
     paddingBottom: 110,
   },
-
   featureCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
@@ -552,24 +516,20 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
   },
-
   featureIcon: {
     fontSize: 28,
     marginBottom: 8,
   },
-
   featureTitle: {
     color: "#071A2F",
     fontWeight: "900",
     fontSize: 14,
   },
-
   featureText: {
     color: "#667085",
     fontSize: 12,
     marginTop: 4,
   },
-
   bottomNav: {
     position: "absolute",
     bottom: 0,
@@ -583,39 +543,32 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
   },
-
   navItem: {
     alignItems: "center",
   },
-
   navIcon: {
     fontSize: 22,
     opacity: 0.55,
   },
-
   navIconActive: {
     fontSize: 24,
   },
-
   navText: {
     color: "#667085",
     fontSize: 12,
     marginTop: 4,
   },
-
   navTextActive: {
     color: "#1457D9",
     fontSize: 12,
     marginTop: 4,
     fontWeight: "900",
   },
-
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.35)",
     justifyContent: "flex-end",
   },
-
   modalCard: {
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 30,
@@ -623,34 +576,29 @@ const styles = StyleSheet.create({
     padding: 24,
     maxHeight: "65%",
   },
-
   modalTitle: {
     color: "#071A2F",
     fontSize: 22,
     fontWeight: "900",
     marginBottom: 18,
   },
-
   routeItem: {
     backgroundColor: "#F4F8FF",
     padding: 16,
     borderRadius: 18,
     marginBottom: 12,
   },
-
   routeItemText: {
     color: "#071A2F",
     fontSize: 17,
     fontWeight: "900",
   },
-
   emptyRoute: {
     color: "#667085",
     textAlign: "center",
     marginVertical: 25,
     fontWeight: "800",
   },
-
   closeButton: {
     backgroundColor: "#1457D9",
     padding: 15,
@@ -658,7 +606,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 10,
   },
-
   closeText: {
     color: "#FFFFFF",
     fontSize: 16,

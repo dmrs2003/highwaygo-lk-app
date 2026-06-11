@@ -110,7 +110,7 @@ export default function Payment() {
           label="Card Holder Name"
           value={cardName}
           setValue={setCardName}
-          placeholder="Ramindu Sulakkana"
+          placeholder="Enter Name as on card"
         />
 
         <Input
