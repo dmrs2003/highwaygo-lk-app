@@ -24,6 +24,18 @@ This project was developed as a real-world transportation management solution to
 
 ---
 
+## 🚀 Get Started
+
+### 📱 Android APK
+
+Experience HighwayGo LK directly on your Android device.
+
+🔗 **APK Download:** [Download Latest APK](https://expo.dev/accounts/raminduuu/projects/highwaygo-lk/builds/c296cbba-011a-4f6a-8d4b-b387c4551b16)
+
+✨ No Play Store installation required.
+
+---
+
 ## 🏆 Project Highlights
 
 - Full Stack Mobile Application
@@ -71,21 +83,24 @@ This project was developed as a real-world transportation management solution to
 
 ## 📸 Application Screenshots
 
-### 📱 Passenger Experience
+<h3>📱 Passenger Experience</h3>
 
 <p align="center">
-  <img src="LOGIN_URL" width="220"/>
-  <img src="HOME_URL" width="220"/>
-  <img src="BUS_SEARCH_URL" width="220"/>
+  <img src="screenshots/login.png" width="220"/>
+  <img src="screenshots/home.png" width="220"/>
+  <img src="screenshots/bus-search.png" width="220"/>
 </p>
 
 <p align="center">
-  <img src="SEAT_SELECTION_URL" width="220"/>
-  <img src="BOOKING_CONFIRMED_URL" width="220"/>
-  <img src="LIVE_TRACKING_URL" width="220"/>
+  <img src="screenshots/seat-selection.png" width="220"/>
+  <img src="screenshots/payment.png" width="220"/>
+  <img src="screenshots/booking-confirmed.png" width="220"/>
 </p>
 
-> Replace `LOGIN_URL`, `HOME_URL`, `BUS_SEARCH_URL`, `SEAT_SELECTION_URL`, `BOOKING_CONFIRMED_URL`, and `LIVE_TRACKING_URL` with your GitHub uploaded image links.
+<p align="center">
+  <img src="screenshots/live-tracking.png" width="220"/>
+  <img src="screenshots/pdf-receipt.png" width="220"/>
+</p>
 
 ---
 
@@ -229,19 +244,6 @@ npx expo start
 
 ---
 
-## 🔑 Environment Variables
-
-Create a `.env` file inside the `backend` folder.
-
-```env
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-EMAIL=your_email@gmail.com
-EMAIL_PASS=your_gmail_app_password
-```
-
----
-
 ## 🌐 Live Backend API
 
 ```text
@@ -250,15 +252,6 @@ https://highwaygo-lk-app.onrender.com
 
 ---
 
-## 📱 APK Build
-
-The Android APK was built using **Expo EAS Build**.
-
-```bash
-eas build --platform android --profile preview
-```
-
----
 
 ## 📈 Future Enhancements
 
